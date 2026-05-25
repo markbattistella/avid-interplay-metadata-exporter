@@ -3,15 +3,17 @@ echo ============================================================
 echo  Interplay Project Explorer - Windows Build
 echo ============================================================
 
-:: Install/upgrade dependencies
+:: Install runtime dependencies + build tool
 pip install -r requirements.txt
+pip install pyinstaller>=6.0.0
 
 :: Build standalone exe
 pyinstaller ^
   --onefile ^
   --windowed ^
   --name "InterplayExplorer" ^
-  --add-data "." ^
+  --hidden-import "keyring.backends.Windows" ^
+  --hidden-import "keyring.backends.fail" ^
   interplay_explorer.py
 
 echo.

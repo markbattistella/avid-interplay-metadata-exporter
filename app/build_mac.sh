@@ -15,8 +15,9 @@ PYTHON=python3.13
 $PYTHON -m venv .venv
 source .venv/bin/activate
 
-# Install dependencies
+# Install runtime dependencies + build tool
 pip install -r requirements.txt
+pip install "pyinstaller>=6.0.0"
 
 # Build standalone app
 pyinstaller \
