@@ -229,8 +229,7 @@ class InterplayClient:
 
 def is_folder(asset: dict) -> bool:
     t = asset.get("type", "")
-    duration = asset["attrs"].get("System.Duration", "")
-    return "folder" in t or "bin" in t or (t == "" and not duration)
+    return "folder" in t or "bin" in t
 
 # ---------------------------------------------------------------------------
 # Project loading (recursive)
@@ -272,8 +271,8 @@ def load_project_data(client: InterplayClient, uri: str,
             items: list[dict] = []
             _collect_items(client, folder["uri"], items, depth=0)
             sections.append({"name": folder["name"], "items": items})
-        except Exception:
-            sections.append({"name": folder["name"], "items": []})
+        except Exception as e:
+            sections.append({"name": folder["name"], "items": [], "error": str(e)})
 
     return sections
 
@@ -284,7 +283,18 @@ def _uri_variants(uri: str):
 def _collect_items(client, uri: str, acc: list, depth: int):
     if depth > 4:
         return
-    for child in client.get_children(uri):
+    children = None
+    for try_uri in _uri_variants(uri):
+        try:
+            children = client.get_children(try_uri)
+            break
+        except RuntimeError as e:
+            if "not found" in str(e).lower():
+                continue
+            raise
+    if children is None:
+        raise RuntimeError(f"Path not found: {uri}")
+    for child in children:
         if is_folder(child):
             _collect_items(client, child["uri"], acc, depth + 1)
         else:
@@ -311,7 +321,8 @@ def format_project(project_name: str,
 
         items = section["items"]
         if not items:
-            lines.append("  (empty)")
+            err = section.get("error", "")
+            lines.append(f"  [Error: {err}]" if err else "  (empty)")
             lines.append("")
             continue
 
