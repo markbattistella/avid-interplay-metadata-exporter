@@ -1,0 +1,1609 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="Assets" targetNamespace="http://avid.com/interplay/ws/assets" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/assets" xmlns:types="http://avid.com/interplay/ws/assets/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xsd:schema xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/assets" xmlns:types="http://avid.com/interplay/ws/assets/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://avid.com/interplay/ws/assets/types" schemaLocation="http://192.168.0.21/services/Assets?xsd=assets.xsd" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="CheckInRequest">
+    <wsdl:part element="types:CheckIn" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DeleteAssetsRequest">
+    <wsdl:part element="types:DeleteAssets" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SaveLocatorsResponse">
+    <wsdl:part element="types:SaveLocatorsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SaveUMIDLocatorsRequest">
+    <wsdl:part element="types:SaveUMIDLocators" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SaveUMIDLocatorsResponse">
+    <wsdl:part element="types:SaveUMIDLocatorsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateFoldersRequest">
+    <wsdl:part element="types:CreateFolders" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetCategoriesRequest">
+    <wsdl:part element="types:SetCategories" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="FindRelativesRequest">
+    <wsdl:part element="types:FindRelatives" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetChildrenRequest">
+    <wsdl:part element="types:GetChildren" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetLocatorsRequest">
+    <wsdl:part element="types:GetLocators" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckInResponse">
+    <wsdl:part element="types:CheckInResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetLatestResponse">
+    <wsdl:part element="types:GetLatestResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RemoveReservationsRequest">
+    <wsdl:part element="types:RemoveReservations" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetCategoriesRequest">
+    <wsdl:part element="types:GetCategories" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetHeadframeResponse">
+    <wsdl:part element="types:SetHeadframeResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RenameRequest">
+    <wsdl:part element="types:Rename" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetAttributesRequest">
+    <wsdl:part element="types:SetAttributes" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="FindLinksResponse">
+    <wsdl:part element="types:FindLinksResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetAttributesRequest">
+    <wsdl:part element="types:GetAttributes" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RemoveUMIDLocatorsResponse">
+    <wsdl:part element="types:RemoveUMIDLocatorsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="AddReservationResponse">
+    <wsdl:part element="types:AddReservationResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetCustomUserAttributesRequest">
+    <wsdl:part element="types:GetCustomUserAttributes" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DuplicateRequest">
+    <wsdl:part element="types:Duplicate" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetFileDetailsRequest">
+    <wsdl:part element="types:GetFileDetails" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RemoveUMIDLocatorsRequest">
+    <wsdl:part element="types:RemoveUMIDLocators" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="FindRelativesResponse">
+    <wsdl:part element="types:FindRelativesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetSegmentsFromCompositionResponse">
+    <wsdl:part element="types:GetSegmentsFromCompositionResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetHeadframeResponse">
+    <wsdl:part element="types:GetHeadframeResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ModifyFolderACLsRequest">
+    <wsdl:part element="types:ModifyFolderACLs" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetCategoriesResponse">
+    <wsdl:part element="types:SetCategoriesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckInAAFResponse">
+    <wsdl:part element="types:CheckInAAFResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SearchRequest">
+    <wsdl:part element="types:Search" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetReservationsRequest">
+    <wsdl:part element="types:GetReservations" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckInAMAAAFRequest">
+    <wsdl:part element="types:CheckInAMAAAF" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetCustomUserAttributesResponse">
+    <wsdl:part element="types:GetCustomUserAttributesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetUMIDLocatorsRequest">
+    <wsdl:part element="types:GetUMIDLocators" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateShotlistResponse">
+    <wsdl:part element="types:CreateShotlistResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateFoldersResponse">
+    <wsdl:part element="types:CreateFoldersResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="MoveRequest">
+    <wsdl:part element="types:Move" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetLatestRequest">
+    <wsdl:part element="types:GetLatest" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="MoveResponse">
+    <wsdl:part element="types:MoveResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="AddFileMobsResponse">
+    <wsdl:part element="types:AddFileMobsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetHeadframeRequest">
+    <wsdl:part element="types:SetHeadframe" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="AddRestrictionsRequest">
+    <wsdl:part element="types:AddRestrictions" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SearchResponse">
+    <wsdl:part element="types:SearchResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetStreamingURLRequest">
+    <wsdl:part element="types:GetStreamingURL" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckInAAFRequest">
+    <wsdl:part element="types:CheckInAAF" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetAttributesResponse">
+    <wsdl:part element="types:SetAttributesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="AddReservationRequest">
+    <wsdl:part element="types:AddReservation" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetStreamingURLResponse">
+    <wsdl:part element="types:GetStreamingURLResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckInAMAAAFResponse">
+    <wsdl:part element="types:CheckInAMAAAFResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateSubclipResponse">
+    <wsdl:part element="types:CreateSubclipResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ModifyFolderACLsResponse">
+    <wsdl:part element="types:ModifyFolderACLsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateSubclipRequest">
+    <wsdl:part element="types:CreateSubclip" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetCategoriesResponse">
+    <wsdl:part element="types:GetCategoriesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DeleteAssetsResponse">
+    <wsdl:part element="types:DeleteAssetsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetResolutionsResponse">
+    <wsdl:part element="types:GetResolutionsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RenameResponse">
+    <wsdl:part element="types:RenameResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="FindLinksRequest">
+    <wsdl:part element="types:FindLinks" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetRestrictionsRequest">
+    <wsdl:part element="types:GetRestrictions" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetChildrenResponse">
+    <wsdl:part element="types:GetChildrenResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetResolutionsRequest">
+    <wsdl:part element="types:GetResolutions" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="AddRestrictionsResponse">
+    <wsdl:part element="types:AddRestrictionsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="AddFileMobsRequest">
+    <wsdl:part element="types:AddFileMobs" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateShotlistRequest">
+    <wsdl:part element="types:CreateShotlist" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetUMIDLocatorsResponse">
+    <wsdl:part element="types:GetUMIDLocatorsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetReservationsResponse">
+    <wsdl:part element="types:GetReservationsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetAttributesResponse">
+    <wsdl:part element="types:GetAttributesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetSegmentsFromCompositionRequest">
+    <wsdl:part element="types:GetSegmentsFromComposition" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DuplicateResponse">
+    <wsdl:part element="types:DuplicateResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateMasterClipResponse">
+    <wsdl:part element="types:CreateMasterClipResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetFileDetailsResponse">
+    <wsdl:part element="types:GetFileDetailsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RemoveLocatorsRequest">
+    <wsdl:part element="types:RemoveLocators" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="LinkToMOBResponse">
+    <wsdl:part element="types:LinkToMOBResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetRestrictionsResponse">
+    <wsdl:part element="types:GetRestrictionsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateMasterClipRequest">
+    <wsdl:part element="types:CreateMasterClip" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RemoveLocatorsResponse">
+    <wsdl:part element="types:RemoveLocatorsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="AssetsFault">
+    <wsdl:part element="types:AssetsFaultType" name="fault">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateFolderRequest">
+    <wsdl:part element="types:CreateFolder" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="LinkToMOBRequest">
+    <wsdl:part element="types:LinkToMOB" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RemoveReservationsResponse">
+    <wsdl:part element="types:RemoveReservationsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateFolderResponse">
+    <wsdl:part element="types:CreateFolderResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetLocatorsResponse">
+    <wsdl:part element="types:GetLocatorsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetHeadframeRequest">
+    <wsdl:part element="types:GetHeadframe" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SaveLocatorsRequest">
+    <wsdl:part element="types:SaveLocators" name="body">
+    </wsdl:part>
+    <wsdl:part element="types:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="AssetsPortType">
+    <wsdl:operation name="AddReservation">
+<wsdl:documentation>
+        Adds a reservation to one or more folders.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:AddReservationRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:AddReservationResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="AddRestrictions">
+<wsdl:documentation>
+        Adds one or more restrictions to an Avid asset.
+
+        Since: 1.4
+        Modified: 2.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:AddRestrictionsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:AddRestrictionsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="AddFileMobs">
+<wsdl:documentation>
+        Adds one or more file mobs to an Avid asset.
+
+        Since: 3.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:AddFileMobsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:AddFileMobsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckInAMAAAF">
+<wsdl:documentation>
+        Checkin a AMA AAF into IP.
+
+        Since: 3.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:CheckInAMAAAFRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CheckInAMAAAFResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckIn">
+<wsdl:documentation>
+        Adds or updates a non-Avid asset in the Interplay system.
+
+        Since: 1.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:CheckInRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CheckInResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckInAAF">
+<wsdl:documentation>
+        Adds or updates an Avid AAF asset in the Interplay system.
+
+        Since: 1.0
+        Modified: 1.1
+      </wsdl:documentation>
+      <wsdl:input message="tns:CheckInAAFRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CheckInAAFResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateFolder">
+<wsdl:documentation>
+        Creates a new folder in the Interplay system.
+
+        Since: 1.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateFolderRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateFolderResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateFolders">
+<wsdl:documentation>
+        Creates new folders in the Interplay system.
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateFoldersRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateFoldersResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateMasterClip">
+<wsdl:documentation>
+        Create an empty masterclip to be captured later.
+
+        Since: 2.0
+        Modified: 2.5
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateMasterClipRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateMasterClipResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateShotlist">
+<wsdl:documentation>
+        Create a simple cuts-only shotlist.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateShotlistRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateShotlistResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateSubclip">
+<wsdl:documentation>
+        Creates a subclip from a masterclip already in Interplay.
+
+        Since: 1.1
+        Modified: 3.8
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateSubclipRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateSubclipResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteAssets">
+<wsdl:documentation>
+        Deletes one or more assets and/or the media that matches them.
+
+        Since: 1.2
+        Modified: 2.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:DeleteAssetsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:DeleteAssetsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Duplicate">
+<wsdl:documentation>
+        Creates a duplicate of an asset.
+
+        Since: 1.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:DuplicateRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:DuplicateResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="FindLinks">
+<wsdl:documentation>
+        Finds all links to a specified asset.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:FindLinksRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:FindLinksResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="FindRelatives">
+<wsdl:documentation>
+        Finds all relatives for a specified Avid asset.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:FindRelativesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:FindRelativesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetAttributes">
+<wsdl:documentation>
+        Gets a set of attributes for a list of assets.
+
+        Since: 1.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetAttributesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetAttributesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetSegmentsFromComposition">
+<wsdl:documentation>
+        Gets a set of segments for a list of assets.
+
+        Since: 2.5
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetSegmentsFromCompositionRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetSegmentsFromCompositionResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetCategories">
+<wsdl:documentation>
+        Gets the configured categories for the system and/or gets the categories for a list
+        of assets.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetCategoriesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetCategoriesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetChildren">
+<wsdl:documentation>
+        Gets the child nodes of the passed in location. Optionally includes or excludes files,
+        folders, or MOBs. An optional name filter (* wildcards are allowed) can restrict the
+        return set to matching nodes.
+
+        Since: 1.0
+        Modified: 2.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetChildrenRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetChildrenResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomUserAttributes">
+<wsdl:documentation>
+        Retrieve the list of custom attributes for the workgroup.
+
+        Since: JXDK2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetCustomUserAttributesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetCustomUserAttributesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetFileDetails">
+<wsdl:documentation>
+        Get the source file locations and statuses for one or more assets.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetFileDetailsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetFileDetailsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetHeadframe">
+<wsdl:documentation>
+        Gets the headframe of an asset in the Interplay system.
+
+        Since: 1.1
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetHeadframeRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetHeadframeResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetLatest">
+<wsdl:documentation>
+        Gets the latest version of an asset in the Interplay system.
+
+        Since: 1.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetLatestRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetLatestResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetLocators">
+<wsdl:documentation>
+        Gets the locators for a given Avid asset.
+
+        WARNING: This operation will be deprecated in a future version of Interplay. Although it will continue
+        to work withInterplay 1.x and 2.x systems, integrators are advised to use the new UMID Locator
+        operations and types instead.
+
+        Since: 1.1
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetLocatorsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetLocatorsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetUMIDLocators">
+<wsdl:documentation>
+        Gets the UMID-based locators for a given Avid asset.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetUMIDLocatorsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetUMIDLocatorsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetReservations">
+<wsdl:documentation>
+        Gets the reservations for one or more folders and/or assets in the Interplay system.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetReservationsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetReservationsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetResolutions">
+<wsdl:documentation>
+        Gets the resolutions for Avid assets. For use in conjuction with DeleteAssets.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetResolutionsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetResolutionsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetRestrictions">
+<wsdl:documentation>
+        Gets the restrictions for one or more Avid assets.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetRestrictionsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetRestrictionsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetStreamingURL">
+<wsdl:documentation>
+        Get the streaming proxy URL for clips/sequences that have been WAN published.
+
+        Since 2.0
+        Modified: 2.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetStreamingURLRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetStreamingURLResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="LinkToMOB">
+<wsdl:documentation>
+        Creates a new link (or reference) to a MOB in a specified location.
+
+        Since: 1.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:LinkToMOBRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:LinkToMOBResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ModifyFolderACLs">
+<wsdl:documentation>
+        Modifies the permissions on a folder in Interplay (by user or user group).
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:ModifyFolderACLsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ModifyFolderACLsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Move">
+<wsdl:documentation>
+        Moves an asset to a different folder.
+
+        Since: 1.0
+        Modified: 2.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:MoveRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:MoveResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Rename">
+<wsdl:documentation>
+        Renames an asset.
+
+        Since: 2.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:RenameRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:RenameResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveLocators">
+<wsdl:documentation>
+        Removes locators from an Avid asset.
+
+        WARNING: This operation will be deprecated in a future version of Interplay. Although it will continue
+        to work withInterplay 1.x and 2.x systems, integrators are advised to use the new UMID Locator
+        operations and types instead.
+
+        Since: 1.1
+      </wsdl:documentation>
+      <wsdl:input message="tns:RemoveLocatorsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:RemoveLocatorsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUMIDLocators">
+<wsdl:documentation>
+        Removes UMID locators from an Avid asset.
+
+        Since: 1.1
+      </wsdl:documentation>
+      <wsdl:input message="tns:RemoveUMIDLocatorsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:RemoveUMIDLocatorsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveReservations">
+<wsdl:documentation>
+        Removes reservations from one or more folders.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:RemoveReservationsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:RemoveReservationsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SaveLocators">
+<wsdl:documentation>
+        Saves a locator. If a locator ID is passed in, and it references an existing locator,
+        it will update that locator. If no locator ID is passed in, it will add a new locator.
+
+        WARNING: This operation will be deprecated in a future version of Interplay. Although it will continue
+        to work withInterplay 1.x and 2.x systems, integrators are advised to use the new UMID Locator
+        operations and types instead.
+
+        Since: 1.1
+      </wsdl:documentation>
+      <wsdl:input message="tns:SaveLocatorsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SaveLocatorsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SaveUMIDLocators">
+<wsdl:documentation>
+        Saves a UMID locator. If a locator URI is passed in, and it references an existing locator,
+        it will update that locator. If no locator URI is passed in, it will add a new UMID locator.
+
+        Since: 1.1
+        Modified: 2.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:SaveUMIDLocatorsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SaveUMIDLocatorsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Search">
+<wsdl:documentation>
+        Search for assets.
+
+        Since: 1.0
+        Modified: 2.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:SearchRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SearchResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetAttributes">
+<wsdl:documentation>
+        Sets custom attributes on a list of assets.
+
+        Since: 1.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:SetAttributesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SetAttributesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetCategories">
+<wsdl:documentation>
+        Adds and/or removes categories from an asset.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:SetCategoriesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SetCategoriesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetHeadframe">
+<wsdl:documentation>
+        Sets a headframe for an Avid asset.
+
+        Since: 1.1
+      </wsdl:documentation>
+      <wsdl:input message="tns:SetHeadframeRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SetHeadframeResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:AssetsFault" name="AssetsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="AssetsPortBinding" type="tns:AssetsPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetStreamingURL">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetStreamingURLRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetSegmentsFromComposition">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetSegmentsFromCompositionRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="AddReservation">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:AddReservationRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="AddRestrictions">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:AddRestrictionsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="AddFileMobs">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:AddFileMobsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckInAMAAAF">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CheckInAMAAAFRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckIn">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CheckInRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckInAAF">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CheckInAAFRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateFolder">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateFolderRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateFolders">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateFoldersRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateSubclip">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateSubclipRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteAssets">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:DeleteAssetsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Duplicate">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:DuplicateRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="FindLinks">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:FindLinksRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="FindRelatives">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:FindRelativesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetAttributes">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetAttributesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetCategories">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetCategoriesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetChildren">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetChildrenRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetFileDetails">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetFileDetailsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetHeadframe">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetHeadframeRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetLatest">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetLatestRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetLocators">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetLocatorsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetUMIDLocators">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetUMIDLocatorsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetReservations">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetReservationsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetResolutions">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetResolutionsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetRestrictions">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetRestrictionsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="LinkToMOB">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:LinkToMOBRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ModifyFolderACLs">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:ModifyFolderACLsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Move">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:MoveRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Rename">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:RenameRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveLocators">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:RemoveLocatorsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveUMIDLocators">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:RemoveUMIDLocatorsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveReservations">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:RemoveReservationsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SaveLocators">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SaveLocatorsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SaveUMIDLocators">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SaveUMIDLocatorsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Search">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SearchRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetAttributes">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SetAttributesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetCategories">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SetCategoriesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetHeadframe">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SetHeadframeRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateShotlist">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateShotlistRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateMasterClip">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateMasterClipRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomUserAttributes">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetCustomUserAttributesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="AssetsFault">
+        <soap:fault name="AssetsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Assets">
+<wsdl:documentation>
+      The Assets service is a SOAP-based entry point into the Avid Interplay assets system.
+    </wsdl:documentation>
+    <wsdl:port binding="tns:AssetsPortBinding" name="AssetsPort">
+      <soap:address location="http://192.168.0.21/services/Assets" />
+    <wsp:Policy>
+        <!-- This service supports both MTOM-enabled and non-MTOM-enabled clients -->
+        <mtom:OptimizedMimeSerialization wsp:Optional="true" />
+      </wsp:Policy>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

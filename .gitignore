@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+app/.venv/
+
+# PyInstaller output
+app/build/
+app/dist/
+app/*.spec
+
+# Legacy extracted binary (binary blobs, not useful in source control)
+legacy/old_app/AV_Project_Export/AVProjectsExport - extracted/

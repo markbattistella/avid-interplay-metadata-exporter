@@ -1,0 +1,168 @@
+<?xml version='1.0' encoding='UTF-8'?><xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/infrastructure/types" version="1.0" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:tns="http://avid.com/interplay/ws/infrastructure/types" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:import namespace="http://avid.com/interplay/ws/assets/types" schemaLocation="http://192.168.0.21/services/Infrastructure?xsd=common.xsd" />
+
+  <!-- OPERATION PARAMETERS AND RESPONSES (Alphabetical) -->
+
+  <xsd:element name="GetConfigurationInformation" type="tns:GetConfigurationInformationType" />
+
+  <xsd:complexType name="GetConfigurationInformationType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetConfigurationInformation operation, this operation have no any
+        Parameters.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetConfigurationInformationResponse" type="tns:GetConfigurationInformationResponseType" />
+
+  <xsd:complexType name="GetConfigurationInformationResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetConfigurationInformation operation. Errors contains a list of errors
+        that occurred. If there are no errors, the Errors element is omitted entirely. If the operation is successful,
+        this operation should return the configuration for all of the configured workgroups (workgroup name/Interplay
+        Engine host/Archive Engine host/Media Services Engine host).
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Results" type="tns:WorkgroupListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetVersionInformation" type="tns:GetVersionInformationType" />
+
+  <xsd:complexType name="GetVersionInformationType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetVersionInformation operation. This operation returns the version of
+        Interplay Web Services as well as the versions of the Interplay Engines for one or more configured workgroups.
+        If a WorkgroupURI is passed in, it will only return the version of the Interplay Engine configured for that
+        specific workgroup name. Otherwise it will attempt to use the passed in credentials to log into each Interplay
+        Engine configured in the web services and report its version. The WorkgroupURI has the form: interplay://$WG ex.
+        interplay://WGA3
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="WorkgroupURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetVersionInformationResponse" type="tns:GetVersionInformationResponseType" />
+
+  <xsd:complexType name="GetVersionInformationResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetVersionInformation operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. If the operation is successful, the
+        version of Interplay Web Services will be returned along with one or more versions of configured Interplay
+        Engines and Archive Engines.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="InterplayWebServicesVersion" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Workgroups" type="tns:WorkGroupDetailsListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <!-- COMMON TYPES (Alphabetical) -->
+
+  <xsd:complexType name="WorkGroupDetailsListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of Interplay Engine Details.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Workgroup" type="tns:WorkGroupDetailsType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="WorkGroupDetailsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The details of a configured Interplay Engine, including the configured workgroup name, the
+        Interplay Engine host name, and the Interplay Engine version, the Archive Engine host name, and the Archive
+        Engine version.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="WorkgroupName" type="xsd:string" />
+      <xsd:element name="InterplayEngineHost" type="xsd:string" />
+      <xsd:element minOccurs="0" name="InterplayEngineVersion" type="xsd:string" />
+      <xsd:element name="ArchiveEngineHost" type="xsd:string" />
+      <xsd:element minOccurs="0" name="ArchiveEngineVersion" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="WorkgroupListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of Workgroups.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Workgroup" type="tns:WorkgroupType" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="WorkgroupType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The Workgroup contains a Workgroup Name, Interplay Engine Host, Archive Engine Host and Media
+        Services Engine Host.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="WorkgroupName" type="xsd:string" />
+      <xsd:element name="InterplayEngineHost" type="xsd:string" />
+      <xsd:element name="ArchiveEngineHost" type="xsd:string" />
+      <xsd:element name="MediaServicesEngineHost" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="InfrastructureFaultType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A system error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The Details contains
+        additional information more useful for debugging.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Message" type="xsd:string" />
+        <xsd:element name="Details" type="xsd:string" />
+        <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+        <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+      </xsd:sequence>
+      <xsd:attribute name="Code" type="xsd:string" use="required" />
+      <xsd:anyAttribute processContents="lax" />
+    </xsd:complexType>
+  </xsd:element>
+  
+</xsd:schema>

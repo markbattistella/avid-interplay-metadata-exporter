@@ -1,0 +1,284 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="Transfer" targetNamespace="http://avid.com/interplay/ws/transfer" xmlns:common="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/transfer" xmlns:types="http://avid.com/interplay/ws/transfer/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xsd:schema xmlns:common="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/transfer" xmlns:types="http://avid.com/interplay/ws/transfer/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://avid.com/interplay/ws/transfer/types" schemaLocation="http://192.168.0.21/services/Transfer?xsd=transfer.xsd" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="GetIndexedWorkspacesResponse">
+    <wsdl:part element="types:GetIndexedWorkspacesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SendToWGResponse">
+    <wsdl:part element="types:SendToWGResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ListTransferEnginesRequest">
+    <wsdl:part element="types:ListTransferEngines" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetTransferDevicesResponse">
+    <wsdl:part element="types:GetTransferDevicesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="TransferFault">
+    <wsdl:part element="types:TransferFaultType" name="fault">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckSequenceIsReadyForMixDownResponse">
+    <wsdl:part element="types:CheckSequenceIsReadyForMixDownResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckSequenceIsReadyForMixDownRequest">
+    <wsdl:part element="types:CheckSequenceIsReadyForMixDown" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckSequenceIsReadyForXferResponse">
+    <wsdl:part element="types:CheckSequenceIsReadyForXferResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SendToPlaybackResponse">
+    <wsdl:part element="types:SendToPlaybackResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SendToPlaybackRequest">
+    <wsdl:part element="types:SendToPlayback" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ListTransferEnginesResponse">
+    <wsdl:part element="types:ListTransferEnginesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckSequenceIsReadyForXferRequest">
+    <wsdl:part element="types:CheckSequenceIsReadyForXfer" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetTransferDevicesRequest">
+    <wsdl:part element="types:GetTransferDevices" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SendToWGRequest">
+    <wsdl:part element="types:SendToWG" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetIndexedWorkspacesRequest">
+    <wsdl:part element="types:GetIndexedWorkspaces" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="TransferPortType">
+    <wsdl:operation name="CheckSequenceIsReadyForXfer">
+<wsdl:documentation>
+        Checks to see if a sequence is ready to be transfered.
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:CheckSequenceIsReadyForXferRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CheckSequenceIsReadyForXferResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:TransferFault" name="TransferFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckSequenceIsReadyForMixDown">
+<wsdl:documentation>
+        Checks to see if a sequence is ready for MixDown
+
+        Since: 3.0.5
+      </wsdl:documentation>
+      <wsdl:input message="tns:CheckSequenceIsReadyForMixDownRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CheckSequenceIsReadyForMixDownResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:TransferFault" name="TransferFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetIndexedWorkspaces">
+<wsdl:documentation>
+        Get the indexed workspaces in shared storage on the Interplay system.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetIndexedWorkspacesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetIndexedWorkspacesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:TransferFault" name="TransferFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetTransferDevices">
+<wsdl:documentation>
+        Gets the devices configured on an Interplay Transfer Engine.
+
+        Modified: 2.0.1 (Fixed incorrect reference in WSDL)
+        Since:2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetTransferDevicesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetTransferDevicesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:TransferFault" name="TransferFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ListTransferEngines">
+<wsdl:documentation>
+        Gets the hostnames of the Interplay Transfer Engines configured on an Interplay system.
+
+        Since:2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:ListTransferEnginesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ListTransferEnginesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:TransferFault" name="TransferFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SendToPlayback">
+<wsdl:documentation>
+        Send a sequence, masterclip, or subclip to an external video server or device (via Interplay Transfer Engine).
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:SendToPlaybackRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SendToPlaybackResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:TransferFault" name="TransferFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SendToWG">
+<wsdl:documentation>
+        Sends an asset to a remote workgroup (via Interplay Transfer Engine).
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:SendToWGRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SendToWGResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:TransferFault" name="TransferFault">
+    </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="TransferPortBinding" type="tns:TransferPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="CheckSequenceIsReadyForXfer">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CheckSequenceIsReadyForXferRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="TransferFault">
+        <soap:fault name="TransferFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CheckSequenceIsReadyForMixDown">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CheckSequenceIsReadyForMixDownRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="TransferFault">
+        <soap:fault name="TransferFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetIndexedWorkspaces">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetIndexedWorkspacesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="TransferFault">
+        <soap:fault name="TransferFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetTransferDevices">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="TransferFault">
+        <soap:fault name="TransferFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ListTransferEngines">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:ListTransferEnginesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="TransferFault">
+        <soap:fault name="TransferFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SendToPlayback">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SendToPlaybackRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="TransferFault">
+        <soap:fault name="TransferFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SendToWG">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SendToWGRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="TransferFault">
+        <soap:fault name="TransferFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Transfer">
+<wsdl:documentation>
+      The Transfer service is a SOAP-based entry point into the Avid Interplay Transfer Engine.
+    </wsdl:documentation>
+    <wsdl:port binding="tns:TransferPortBinding" name="TransferPort">
+      <soap:address location="http://192.168.0.21/services/Transfer" />
+    <wsp:Policy>
+        <!-- This service supports both MTOM-enabled and non-MTOM-enabled clients -->
+        <mtom:OptimizedMimeSerialization wsp:Optional="true" />
+      </wsp:Policy>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

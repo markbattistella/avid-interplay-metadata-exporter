@@ -1,0 +1,372 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="Archive" targetNamespace="http://avid.com/interplay/ws/jobs" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/jobs" xmlns:types="http://avid.com/interplay/ws/jobs/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xsd:schema xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/jobs" xmlns:types="http://avid.com/interplay/ws/jobs/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://avid.com/interplay/ws/jobs/types" schemaLocation="http://192.168.0.21/services/Jobs?xsd=jobs.xsd" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="DeleteJobsResponse">
+    <wsdl:part element="types:DeleteJobsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingProfileRequest">
+    <wsdl:part element="types:SubmitJobUsingProfile" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CancelJobsRequest">
+    <wsdl:part element="types:CancelJobs" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DeleteJobsRequest">
+    <wsdl:part element="types:DeleteJobs" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="PauseJobsResponse">
+    <wsdl:part element="types:PauseJobsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingParametersResponse">
+    <wsdl:part element="types:SubmitJobUsingParametersResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetJobStatusRequest">
+    <wsdl:part element="types:GetJobStatus" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingParametersRequest">
+    <wsdl:part element="types:SubmitJobUsingParameters" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetProfilesResponse">
+    <wsdl:part element="types:GetProfilesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ResumeJobsRequest">
+    <wsdl:part element="types:ResumeJobs" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CancelJobsResponse">
+    <wsdl:part element="types:CancelJobsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetProfilesRequest">
+    <wsdl:part element="types:GetProfiles" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ResumeJobsResponse">
+    <wsdl:part element="types:ResumeJobsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingProfileResponse">
+    <wsdl:part element="types:SubmitJobUsingProfileResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="JobsFault">
+    <wsdl:part element="types:JobsFault" name="fault">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetJobStatusResponse">
+    <wsdl:part element="types:GetJobStatusResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="PauseJobsRequest">
+    <wsdl:part element="types:PauseJobs" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RetryJobsRequest">
+    <wsdl:part element="types:RetryJobs" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RetryJobsResponse">
+    <wsdl:part element="types:RetryJobsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="JobsPortType">
+    <wsdl:operation name="CancelJobs">
+<wsdl:documentation>
+        Cancel a Media Service or Transfer job.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:CancelJobsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CancelJobsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteJobs">
+<wsdl:documentation>
+        Delete a Media Services job. If called on a Transfer Job, will pause the job and return an error.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:DeleteJobsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:DeleteJobsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetJobStatus">
+<wsdl:documentation>
+        Gets the status of a Media Services or Transfer job.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetJobStatusRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetJobStatusResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetProfiles">
+<wsdl:documentation>
+        Gets the configured profiles for a list of services in Media Services.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetProfilesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetProfilesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="PauseJobs">
+<wsdl:documentation>
+        Pause one or more Transfer jobs. Not supported for Media Services jobs.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:PauseJobsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:PauseJobsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ResumeJobs">
+<wsdl:documentation>
+        Resume one or more Transfer jobs. Not supported for Media Services.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:ResumeJobsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ResumeJobsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RetryJobs">
+<wsdl:documentation>
+        Retry one or more Transfer jobs. Currently not supported for Media Services (expected in future version).
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:RetryJobsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:RetryJobsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingParameters">
+<wsdl:documentation>
+        Submit a Media Services job using a set of parameters.
+
+        Integrators should note: In order to prevent the Media Services Engine from being overloaded by requests, a
+        threshold has been put in place. No more than 20 jobs per minute may be submitted to the Media Services Engine
+        via Interplay WS. If the limit is exceeded, the submit job request will be rejected with an error saying that
+        the limit has been reached.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:SubmitJobUsingParametersRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SubmitJobUsingParametersResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingProfile">
+<wsdl:documentation>
+        Submit a Media Services job using a pre-defined profile.
+
+        Integrators should note: In order to prevent the Media Services Engine from being overloaded by requests, a
+        threshold has been put in place. No more than 20 jobs per minute may be submitted to the Media Services Engine
+        via Interplay WS. If the limit is exceeded, the submit job request will be rejected with an error saying that
+        the limit has been reached.
+
+        Since: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:SubmitJobUsingProfileRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SubmitJobUsingProfileResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault">
+    </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="JobsPortBinding" type="tns:JobsPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="CancelJobs">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CancelJobsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteJobs">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:DeleteJobsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetJobStatus">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetJobStatusRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetProfiles">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetProfilesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="PauseJobs">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:PauseJobsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ResumeJobs">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:ResumeJobsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RetryJobs">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:RetryJobsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingParameters">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SubmitJobUsingParametersRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingProfile">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SubmitJobUsingProfileRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Jobs">
+<wsdl:documentation>
+      The Jobs Service is a SOAP-based entry point into the Avid Interplay Media Services Engine as well as
+      a control interface for Media Services and Transfer jobs.
+    </wsdl:documentation>
+    <wsdl:port binding="tns:JobsPortBinding" name="JobsPort">
+      <soap:address location="http://192.168.0.21/services/Jobs" />
+    <wsp:Policy>
+        <!-- This service supports both MTOM-enabled and non-MTOM-enabled clients -->
+        <mtom:OptimizedMimeSerialization wsp:Optional="true" />
+      </wsp:Policy>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

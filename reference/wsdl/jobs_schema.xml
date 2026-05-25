@@ -1,0 +1,458 @@
+<?xml version='1.0' encoding='UTF-8'?><xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/jobs/types" version="1.0" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:tns="http://avid.com/interplay/ws/jobs/types" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import namespace="http://avid.com/interplay/ws/assets/types" schemaLocation="http://192.168.0.21/services/Jobs?xsd=common.xsd" />
+
+  <xsd:element name="CancelJobs" type="tns:CancelJobsType" />
+
+  <xsd:complexType name="CancelJobsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the CancelJobs operation. The only parameter is a list of JobURIs that reference
+        Media Services and Transfer jobs.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CancelJobsResponse" type="tns:CancelJobsResponseType" />
+
+  <xsd:complexType name="CancelJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the CancelJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="DeleteJobs" type="tns:DeleteJobsType" />
+
+  <xsd:complexType name="DeleteJobsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the DeleteJobs operation. The only parameter is a list of JobURIs that reference
+        Media Services jobs. If a Transfer job URI is passed in, the job will be paused and an error returned.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="DeleteJobsResponse" type="tns:DeleteJobsResponseType" />
+
+  <xsd:complexType name="DeleteJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the DeleteJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetJobStatus" type="tns:GetJobStatusType" />
+
+  <xsd:complexType name="GetJobStatusType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the GetJobStatus operation. The only parameter is a list of JobURIs that reference
+        Media Services and Transfer jobs.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetJobStatusResponse" type="tns:GetJobStatusResponseType" />
+
+  <xsd:complexType name="GetJobStatusResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetJobStatus operation. Returns a list of JobStatusTypes with status information
+        for each JobURI that was passed in. Errors contains a list of errors that occurred. If there are no errors,
+        the Errors element is omitted entirely.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="JobStatusTypes" type="tns:JobStatusListType" />
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetProfiles" type="tns:GetProfilesType" />
+
+  <xsd:complexType name="GetProfilesType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the GetProfiles operation. The WorkgroupURI represents the workgroup to query the
+        Media Services Engine on. Services is a list of services to get profiles for (ex. com.avid.dms.archive).
+        If ShowParameters is true, a list of name/value parameters defining the profile will also be returned.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="WorkgroupURI" type="xsd:string" />
+      <xsd:element name="Services" type="tns:ServiceListType" />
+      <xsd:element default="false" minOccurs="0" name="ShowParameters" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetProfilesResponse" type="tns:GetProfilesResponseType" />
+
+  <xsd:complexType name="GetProfilesResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetProfiles operation. Returns a list of ProfileTypes. Errors contains a list of errors
+        that occurred. If there are no errors, the Errors element is omitted entirely.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Results" type="tns:ProfileListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="PauseJobs" type="tns:PauseJobsType" />
+
+  <xsd:complexType name="PauseJobsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the PauseJobs operation. The only parameter is a list of JobURIs that reference
+        Transfer jobs.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="PauseJobsResponse" type="tns:PauseJobsResponseType" />
+
+  <xsd:complexType name="PauseJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the PauseJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ResumeJobs" type="tns:ResumeJobsType" />
+
+  <xsd:complexType name="ResumeJobsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the ResumeJobs operation. The only parameter is a list of JobURIs that reference
+        Transfer jobs.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ResumeJobsResponse" type="tns:ResumeJobsResponseType" />
+
+  <xsd:complexType name="ResumeJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the ResumeJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="RetryJobs" type="tns:RetryJobsType" />
+
+  <xsd:complexType name="RetryJobsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the RetryJobs operation. The only parameter is a list of JobURIs that reference
+        Transfer jobs.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="RetryJobsResponse" type="tns:RetryJobsResponseType" />
+
+  <xsd:complexType name="RetryJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the RetryJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SubmitJobUsingParameters" type="tns:SubmitJobUsingParametersType" />
+
+  <xsd:complexType name="SubmitJobUsingParametersType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the SubmitJobUsingParameters operation. Service represents the service to submit to
+        (ex., com.avid.dms.archive). InterplayURI references the asset to perform the service on. Parameters
+        is the list of name/value parameters that define the job. SourceServerType determines the source server
+        for the asset. Valid values are "Archive" and "Assets" (default).
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Service" type="xsd:string" />
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element name="Parameters" type="tns:ProfileParameterType" />
+      <xsd:element minOccurs="0" name="SourceServerType" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SubmitJobUsingParametersResponse" type="tns:SubmitJobUsingParametersResponseType" />
+
+  <xsd:complexType name="SubmitJobUsingParametersResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the SubmitJobUsingParameters operation. The JobURI represents the job that was submitted
+        and can be used to track and manage the job. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="JobURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SubmitJobUsingProfile" type="tns:SubmitJobUsingProfileType" />
+
+  <xsd:complexType name="SubmitJobUsingProfileType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The parameters for the SubmitJobUsingProfile operation. Service represents the service to submit to
+        (ex., com.avid.dms.archive). Profile represents the specific profile to user. InterplayURI references the
+        asset to perform the service on. SourceServerType determines the source server for the asset. Valid values
+        are "Archive" and "Assets" (default).
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Service" type="xsd:string" />
+      <xsd:element name="Profile" type="xsd:string" />
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="SourceServerType" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SubmitJobUsingProfileResponse" type="tns:SubmitJobUsingProfileResponseType" />
+
+  <xsd:complexType name="SubmitJobUsingProfileResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the SubmitJobUsingProfile operation. The JobURI represents the job that was submitted
+        and can be used to track and manage the job. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="JobURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <!-- COMMON TYPES (Alphabetical) -->
+
+  <xsd:complexType name="JobStatusListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        a list of JobStatusTypes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="JobStatus" type="tns:JobStatusType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="JobStatusType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Contain a JobURI, its status (ex. RUNNING), optional Description (usually only provided for errors), and
+        PercentComplete (only valid when RUNNING).
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURI" type="xsd:string" />
+      <xsd:element name="Status" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Description" type="xsd:string" />
+      <xsd:element minOccurs="0" name="PercentComplete" type="xsd:int" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="JobURIListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        interplay://${WGNAME}/${JOBTYPE}?jobid=${JOBID}
+        ex. interplay://WGA/DMS?jobid=1260980985656.1
+        ex. interplay://WGA/XFER?jobid=123_wga-tm
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="JobURI" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ProfileListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of ProfileTypes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Profile" type="tns:ProfileType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ProfileType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The profile name, service, and parameters for a configured profile.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Name" type="xsd:string" />
+      <xsd:element name="Service" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Parameters" type="tns:ProfileParameterType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ProfileParameterType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of parameters used in a profile.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Parameter" type="tns:ParameterType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ParameterType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A name/value pair representing a parameter for a Media Services job.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="Name" type="xsd:string" use="required" />
+        <xsd:anyAttribute processContents="lax" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="ServiceListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of service names (ex. com.avid.dms.archive).
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Name" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:element name="JobsFault" type="tns:JobsFaultType" />
+
+  <xsd:complexType name="JobsFaultType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A system error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The
+        Details contains additional information more useful for debugging.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Message" type="xsd:string" />
+      <xsd:element name="Details" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:attribute name="Code" type="xsd:string" use="required" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+</xsd:schema>

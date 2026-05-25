@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="Infrastructure" targetNamespace="http://avid.com/interplay/ws/infrastructure" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/infrastructure" xmlns:types="http://avid.com/interplay/ws/infrastructure/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xsd:schema xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/infrastructure" xmlns:types="http://avid.com/interplay/ws/infrastructure/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://avid.com/interplay/ws/infrastructure/types" schemaLocation="http://192.168.0.21/services/Infrastructure?xsd=infrastructure.xsd" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="GetConfigurationInformationResponse">
+    <wsdl:part element="types:GetConfigurationInformationResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetConfigurationInformationRequest">
+    <wsdl:part element="types:GetConfigurationInformation" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="InfrastructureFault">
+    <wsdl:part element="types:InfrastructureFaultType" name="fault">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetVersionInformationRequest">
+    <wsdl:part element="types:GetVersionInformation" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetVersionInformationResponse">
+    <wsdl:part element="types:GetVersionInformationResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="InfrastructurePortType">
+    <wsdl:operation name="GetConfigurationInformation">
+<wsdl:documentation>
+        Gets the config info for Interplay Web Services.
+
+        Since: 1.4
+        Modified: 2.0
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetConfigurationInformationRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetConfigurationInformationResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:InfrastructureFault" name="InfrastructureFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetVersionInformation">
+<wsdl:documentation>
+        Gets the version of Interplay Web Services as well as the Interplay Engines
+        and Archive Engines that are configured on Interplay Web Services.
+
+        Since: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetVersionInformationRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetVersionInformationResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:InfrastructureFault" name="InfrastructureFault">
+    </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="InfrastructurePortBinding" type="tns:InfrastructurePortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetConfigurationInformation">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="InfrastructureFault">
+        <soap:fault name="InfrastructureFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetVersionInformation">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetVersionInformationRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="InfrastructureFault">
+        <soap:fault name="InfrastructureFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Infrastructure">
+<wsdl:documentation>
+      The Infrastructure service is a SOAP-based entry point for queries regarding general infrastructure
+    </wsdl:documentation>
+    <wsdl:port binding="tns:InfrastructurePortBinding" name="InfrastructurePort">
+      <soap:address location="http://192.168.0.21/services/Infrastructure" />
+    <wsp:Policy>
+        <!-- This service supports both MTOM-enabled and non-MTOM-enabled clients -->
+        <mtom:OptimizedMimeSerialization wsp:Optional="true" />
+      </wsp:Policy>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

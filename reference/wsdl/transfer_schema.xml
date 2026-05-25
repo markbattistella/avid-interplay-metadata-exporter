@@ -1,0 +1,348 @@
+<?xml version='1.0' encoding='UTF-8'?><xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/transfer/types" version="1.0" xmlns:common="http://avid.com/interplay/ws/assets/types" xmlns:tns="http://avid.com/interplay/ws/transfer/types" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:import namespace="http://avid.com/interplay/ws/assets/types" schemaLocation="http://192.168.0.21/services/Transfer?xsd=common.xsd" />
+
+  <!-- OPERATION PARAMETERS AND RESPONSES (Alphabetical) -->
+
+  <xsd:element name="CheckSequenceIsReadyForXfer" type="tns:CheckSequenceIsReadyForXferType" />
+
+  <xsd:complexType name="CheckSequenceIsReadyForXferType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the CheckSequenceIsReadyForXferType operation. A specific target resolution
+        may be given in order to check to see if the sequence is available in that specific
+        resolution.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="TargetResolution" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CheckSequenceIsReadyForXferResponse" type="tns:CheckSequenceIsReadyForXferResponseType" />
+
+  <xsd:complexType name="CheckSequenceIsReadyForXferResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the CheckSequenceIsReadyForXfer operation. Errors contains a list of
+        errors that occurred. If there are no errors, the Errors element is omitted entirely.
+        A successful operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+
+    <xsd:element name="CheckSequenceIsReadyForMixDown" type="tns:CheckSequenceIsReadyForMixDownType" />
+
+  <xsd:complexType name="CheckSequenceIsReadyForMixDownType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the CheckSequenceIsReadyForMixDownType operation. A specific target resolution
+        may be given in order to check to see if the sequence is available in that specific
+        resolution.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="TargetResolution" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CheckSequenceIsReadyForMixDownResponse" type="tns:CheckSequenceIsReadyForMixDownResponseType" />
+
+  <xsd:complexType name="CheckSequenceIsReadyForMixDownResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the CheckSequenceIsReadyForMixDown operation. Errors contains a list of
+        errors that occurred. If there are no errors, the Errors element is omitted entirely.
+        A successful operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetIndexedWorkspaces" type="tns:GetIndexedWorkspacesType" />
+
+  <xsd:complexType name="GetIndexedWorkspacesType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetIndexedWorkspaces operation. WorkgroupURI must represent Workgroup
+        on the Interplay system. It has the format: interplay://$WG (ex. interplay://WGA3).
+        This function will get the workspaces that are indexed by the Media Indexer.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="WorkgroupURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetIndexedWorkspacesResponse" type="tns:GetIndexedWorkspacesResponseType" />
+
+  <xsd:complexType name="GetIndexedWorkspacesResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetIndexedWorkspaces operation. Errors contain a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. Results contain
+        a list of workspaces that are indexed by the Media Indexer.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Results" type="tns:WorkspaceListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetTransferDevices" type="tns:GetTransferDevicesType" />
+
+  <xsd:complexType name="GetTransferDevicesType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetTransferDevices operation. TransferEngineHostName must be a valid (reachable) Transfer
+        Engine hostname. DeviceType optional takes a list of device types to query for. Valid values are:
+        INGEST, PLAYBACK, WORKGROUP. If not passed in, all device types will be returned.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="TransferEngineHostName" type="xsd:string" />
+      <xsd:element minOccurs="0" name="DeviceType" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetTransferDevicesResponse" type="tns:GetTransferDevicesResponseType" />
+
+  <xsd:complexType name="GetTransferDevicesResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetTransferDevices operation. Errors contain a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. Devices contains a list
+        of the devices configured on the Transfer Engine.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Devices" type="tns:DeviceListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ListTransferEngines" type="tns:ListTransferEnginesType" />
+
+  <xsd:complexType name="ListTransferEnginesType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the ListTransferEngines operation. The only parameter is a WorkgroupURI reference the workgroup
+        from which the list of registered Transfer Engines should be retrieved.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="WorkgroupURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ListTransferEnginesResponse" type="tns:ListTransferEnginesResponseType" />
+
+  <xsd:complexType name="ListTransferEnginesResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the ListTransferEngines operation. Errors contain a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. TransferEngines contains a list
+        of the Tramsfer Engines registered in the Interplay system.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="TransferEngines" type="tns:TransferEngineServerNameListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SendToPlayback" type="tns:SendToPlaybackType" />
+
+  <xsd:complexType name="SendToPlaybackType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the SendToPlayback operation. The TransferEngineHostName is the hostname of the Transfer
+        Engine to perform the send to playback. The InterplayURI must reference a valid sequence that is ready
+        to be sent to playback via automation. The DestinationPlaybackDevice indicates the playback device to use.
+        Priority indicates priority. Valid values are NORMAL, PWT, or UNASSIGNED, but in most cases, NORMAL should be
+        used. The Overwrite parameter is an optional boolean indicating if it is OK to overwrite a clip with the same
+        name on the destination device.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="TransferEngineHostName" type="xsd:string" />
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element name="DestinationPlaybackDevice" type="xsd:string" />
+      <xsd:element default="NORMAL" minOccurs="0" name="Priority" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Overwrite" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SendToPlaybackResponse" type="tns:SendToPlaybackResponseType" />
+
+  <xsd:complexType name="SendToPlaybackResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the SendToPlayback operation. Errors contain a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. The JobURI represents the job that
+        was submitted and can be used to track and manage the transfer.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="JobURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SendToWG" type="tns:SendToWGType" />
+
+  <xsd:complexType name="SendToWGType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the SendToWG operation. The TransferEngineHostName is the hostname of the source Transfer
+        Engine. The InterplayURI references the Avid asset you wish to transfer to the remote workgroup. The
+        DestinationWorkgroup specifies the WG to send to and must match one of the configured remote workgroups on the
+        source Transfer Engine. The optional DestinationWorkspace specifies the workspace where the media should go on
+        the remote workgroup. The DestinationWorkspace is not the UNC path to the workspace, but rather the workspace
+        name. If no DestinationWorkspace is specified, the default workspace configured on the remote Transfer Engine
+        will be used.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="TransferEngineHostName" type="xsd:string" />
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element name="DestinationWorkgroup" type="xsd:string" />
+      <xsd:element minOccurs="0" name="DestinationWorkspace" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SendToWGResponse" type="tns:SendToWGResponseType" />
+
+  <xsd:complexType name="SendToWGResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the SendToWG operation. Errors contain a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. The JobURI represents the job that
+        was submitted and can be used to track and manage the transfer.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="JobURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <!-- COMMON TYPES (Alphabetical) -->
+
+  <xsd:complexType name="DeviceListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of Transfer DeviceTypes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Device" type="tns:DeviceType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="DeviceType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A Transfer DeviceType has a Type (INGEST, PLAYBACK, WORKGROUP) and a name.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Type" type="xsd:string" />
+      <xsd:element name="Name" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="TransferEngineServerNameListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of Interplay Engine hsotnames.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="TransferEngine" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="WorkspaceListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of Workspaces.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Workspace" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:element name="TransferFaultType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A system error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The
+        Details contains additional information more useful for debugging.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Message" type="xsd:string" />
+        <xsd:element name="Details" type="xsd:string" />
+        <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+        <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+      </xsd:sequence>
+      <xsd:attribute name="Code" type="xsd:string" use="required" />
+      <xsd:anyAttribute processContents="lax" />
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

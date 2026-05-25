@@ -1,0 +1,403 @@
+<?xml version='1.0' encoding='UTF-8'?><xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/archive/types" version="1.0" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:tns="http://avid.com/interplay/ws/archive/types" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import namespace="http://avid.com/interplay/ws/assets/types" schemaLocation="http://192.168.0.21/services/Archive?xsd=common.xsd" />
+
+  <!-- OPERATION PARAMETERS AND RESPONSES (Alphabetical) -->
+
+  <xsd:element name="CheckInAAF" type="tns:CheckInAAFType" />
+
+  <xsd:complexType name="CheckInAAFType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the CheckInAAF operation. If InterplayURI is a path, the Avid AAF file will
+        be added to the Interplay system. If InterplayURI is a valid moniker or MOBID, the
+        corresponding asset will be updated with the Avid AAF file. A Headframe file and a set of
+        Attributes to be stored can also be optionally specified. The Headframe must be a JPEG,
+        GIF, PNG, or BMP image. It will be converted and resized to a 400x300 JPEG.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element name="AAF" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream" />
+      <xsd:element minOccurs="0" name="Headframe" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream" />
+      <xsd:element minOccurs="0" name="HeadframeAspectRatio" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Attributes" type="comm:AttributeListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CheckInAAFResponse" type="tns:CheckInAAFResponseType" />
+
+  <xsd:complexType name="CheckInAAFResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the CheckInAAF operation. Errors contains a list of errors that occurred.
+        If there are no errors, the Errors element is omitted entirely. The InterplayURI represents
+        a reference to the checked in asset. The InterplayURI element will be omitted if errors
+        caused the operation to fail.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="InterplayURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CreateFolders" type="tns:CreateFoldersType" />
+
+  <xsd:complexType name="CreateFoldersType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for CreateFolders operation. The only required parameter is the InterplayURI
+        representing the path of the new folder to create.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURIs" type="comm:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="Owner" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CreateFoldersResponse" type="tns:CreateFoldersResponseType" />
+
+  <xsd:complexType name="CreateFoldersResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the CreateFolders operation. Errors contains a list of errors that occurred.
+        If there are no errors, the Errors element is omitted entirely. A successful operation does not have any
+        resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetAttributes" type="tns:GetAttributesType" />
+
+  <xsd:complexType name="GetAttributesType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetAttributes operation. Gets a set of attributes for a list of assets
+        specified by InterplayURIs. If an Attributes element is included, the requested attributes
+        will be returned. Otherwise, the default set of attributes is returned.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURIs" type="comm:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="Attributes" type="comm:AttributeListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetAttributesResponse" type="tns:GetAttributesResponseType" />
+
+  <xsd:complexType name="GetAttributesResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetAttributes operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. Results contains
+        a list of the requested nodes along with the requested metadata attributes. The Results
+        element will be omitted if errors caused the entire operation to fail completely.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Results" type="comm:AssetDescriptionListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+
+  <xsd:element name="GetFileDetails" type="tns:GetFileDetailsType" />
+
+  <xsd:complexType name="GetFileDetailsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetFileDetails operation. InterplayURIs must reference valid masterclips.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURIs" type="comm:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetFileDetailsResponse" type="tns:GetFileDetailsResponseType" />
+
+  <xsd:complexType name="GetFileDetailsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetFileDetails operation. Errors contain a list of errors that occurred.
+        If there are no errors, the Errors element is omitted entirely. Results contains a list of FileLocationDetails
+        for each file mob used by the asset.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Results" type="comm:FileLocationDetailsListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetChildren" type="tns:GetChildrenType" />
+  <xsd:complexType name="GetChildrenType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetChildren operation. Gets the child nodes located under the location
+        pointed to by InterplayURI. IncludeFolders, IncludeFiles, and IncludeMOBs all the results
+        to be filter by the type of node. The optional NameFilter allows the results to be filtered
+        based on name and a regular expression. The optional ReturnAttributes allows the caller to
+        specifically indicate what attributes should be returned for each asset.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element name="IncludeFolders" type="xsd:boolean" />
+      <xsd:element name="IncludeFiles" type="xsd:boolean" />
+      <xsd:element name="IncludeMOBs" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="NameFilter" type="xsd:string" />
+      <xsd:element minOccurs="0" name="ReturnAttributes" type="comm:AttributeListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetChildrenResponse" type="tns:GetChildrenResponseType" />
+  <xsd:complexType name="GetChildrenResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetChildren operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. Results contains
+        a list of resulting nodes along with a predefined set of basic metadata. The Results
+        element will be omitted if errors caused the entire operation to fail completely.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Results" type="comm:AssetDescriptionListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetHeadframe" type="tns:GetHeadframeType" />
+
+  <xsd:complexType name="GetHeadframeType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetHeadframe operation. Gets the headframe of the Avid asset specified
+        by the InterplayURI.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetHeadframeResponse" type="tns:GetHeadframeResponseType" />
+
+  <xsd:complexType name="GetHeadframeResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetHeadframe operation. Errors contains a list of errors that
+        occurred. If the asset does not have an associated headframe, it will result in an error.
+        If there are no errors, the Errors element is omitted entirely. Headframe is the binary
+        headframe in JPEG format (usually 400x300). The Headframe element will be omitted if errors
+        caused the operation to fail.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Headframe" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetLatest" type="tns:GetLatestType" />
+
+  <xsd:complexType name="GetLatestType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the GetLatest operation. Gets the latest version of the asset specified by
+        InterplayURI.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetLatestResponse" type="tns:GetLatestResponseType" />
+
+  <xsd:complexType name="GetLatestResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetLatest operation. Errors contains a list of errors that occurred.
+        If there are no errors, the Errors element is omitted entirely. File is the binary
+        representation of the requested asset. The File element will be omitted if errors caused
+        the operation to fail.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="File" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="Search" type="tns:SearchType" />
+
+  <xsd:complexType name="SearchType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the Search operation. Searches can be done from a specified root folder
+        against specified conditions on attributes. The optional ReturnAttributes allows the
+        caller to specifically indicate what attributes should be returned for each asset.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayPathURI" type="xsd:string" />
+      <xsd:element name="SearchGroup" type="comm:SearchGroupType" />
+      <xsd:element minOccurs="0" name="ReturnAttributes" type="comm:AttributeListType" />
+      <xsd:element minOccurs="0" name="MaxResults" type="xsd:int" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SearchResponse" type="tns:SearchResponseType" />
+
+  <xsd:complexType name="SearchResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the Search operation. Errors contains a list of errors that occurred. If
+        there are no errors, the Errors element is omitted entirely. Results contains a list of
+        resulting nodes along with a predefined set of basic metadata. The Results element will be
+        omitted if errors caused the entire operation to fail completely.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Results" type="comm:AssetDescriptionListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SetFileStatus" type="tns:SetFileStatusType" />
+
+  <xsd:complexType name="SetFileStatusType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for the SetFileStatus operation. Pass in one or more FileStatuses
+        representing the file mob of masterclip and status.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="FileStatuses" type="tns:FileStatusListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="SetFileStatusResponse" type="tns:SetFileStatusResponseType" />
+
+  <xsd:complexType name="SetFileStatusResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the SetFileStatus operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <!-- COMMON TYPES (Alphabetical) -->
+
+  <xsd:complexType name="FileStatusType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A FileStatus that contain a FileMobURI and a status,The fileMobURI can be associated with a file mob of
+        masterclip.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="FileMobURI" type="xsd:string" />
+      <xsd:element name="Status" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="FileStatusListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of FileStatus.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="FileStatus" type="tns:FileStatusType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:element name="ArchiveFault" type="tns:ArchiveFaultType" />
+
+  <xsd:complexType name="ArchiveFaultType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A system error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The
+        Details contains additional information more useful for debugging.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Message" type="xsd:string" />
+      <xsd:element name="Details" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:attribute name="Code" type="xsd:string" use="required" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+</xsd:schema>

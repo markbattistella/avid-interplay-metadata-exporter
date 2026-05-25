@@ -1,0 +1,57 @@
+$(document).ready(function() {
+    var index = $("#entrySize").val();
+    $("#allConfigs").val(index);
+    $("#Add").click(function() {
+        $("#configs").append("<tr>" +
+                             "<td><input id='key" + index + "' name='key" + index + "' type='text'/></td>" +
+                             "<td><input id='server" + index + "' name='server" + index + "' type='text'/></td>" +
+                             "<td><input id='archiveServer" + index + "' name='archiveServer" + index + "' type='text'/></td>" +
+                             "<td><input id='mediaServicesServer" + index + "' name='mediaServicesServer" + index + "' type='text'/></td>" +
+                             "<td><a href='#' onclick='removeTr(this);'>remove</a></td>" +
+                             "</tr>");
+        $("#allConfigs").val(parseInt(index) + 1);
+        index++;
+    });
+});
+//<input type='button' value='Remove' onclick='removeTr(this);'/>
+function removeTr(e) {
+    var je = $(e);
+    je.parent().parent().remove();
+}
+function validate() {
+    var all = $("#allConfigs").val();
+  //  var ip =/^([1-9]|[1-9]\d|1\d{2}|2[0-1]\d|22[0-3])(\.(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])){3}$/;
+    for (var i = 0; i < all; i++) {
+        if ($("#key" + i).length) {
+            if ($("#key" + i).val() == null || $("#key" + i).val() == "") {
+                alert("name can not be empty");
+                $("#key" + i).focus();
+                return false;
+            }
+
+            var serverExist = false;
+            var archiveExist = false;
+            var mediaExist = false;
+            if ($("#server" + i).val() != null && $("#server" + i).val() != "") {
+                serverExist = true;
+            }
+
+            if ($("#archiveServer" + i).val() != null && $("#archiveServer" + i).val() != "") {
+                archiveExist = true;
+            }
+            if ($("#mediaServicesServer" + i).val() != null && $("#mediaServicesServer" + i).val() != "") {
+                mediaExist = true;
+            }
+
+            if (!(serverExist || archiveExist || mediaExist)) {
+                alert("At least one engine is required");
+                return false;
+            }
+        }
+    }
+    return true;
+}
+function goHome() {
+    var path = $("#path").val();
+    window.location.href = path;
+}

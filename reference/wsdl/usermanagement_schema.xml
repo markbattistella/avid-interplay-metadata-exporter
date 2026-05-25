@@ -1,0 +1,409 @@
+<?xml version='1.0' encoding='UTF-8'?><xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/user/types" version="1.0" xmlns:common="http://avid.com/interplay/ws/assets/types" xmlns:tns="http://avid.com/interplay/ws/user/types" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:import namespace="http://avid.com/interplay/ws/assets/types" schemaLocation="http://192.168.0.21/services/UserManagement?xsd=common.xsd" />
+
+  <!-- OPERATION PARAMETERS AND RESPONSES (Alphabetical) -->
+
+  <xsd:element name="CreateGroups" type="tns:CreateGroupsType" />
+
+  <xsd:complexType name="CreateGroupsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for CreateGroups operation. The passed in groups must contain at least a
+        group URI. If no permission level is passed in, the system default will be used.
+        If userURIs are specified, the users will be added to the group.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Groups" type="tns:GroupListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CreateGroupsResponse" type="tns:CreateGroupsResponseType" />
+
+  <xsd:complexType name="CreateGroupsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the CreateGroups operation. Errors contains a list of errors that
+        occurred. If the group already exists in the system, it will be returned as an error
+        and the GroupURI will be returned as the InterplayURI in the error object. If an user
+        cannot be added, an error will be returned with the UserURI as the InterplayURI, but
+        the group will still be created. If there are no errors, the Errors element is omitted
+        entirely. A successful operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CreateUsers" type="tns:CreateUsersType" />
+
+  <xsd:complexType name="CreateUsersType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for CreateUsers operation. UserURI and Password are required for each User.
+        The permission level should not be specified, as user permissions are derived from the
+        groups they belong to. If groupURIs are specified, the user will be added to those groups.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Users" type="tns:UserListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="CreateUsersResponse" type="tns:CreateUsersResponseType" />
+
+  <xsd:complexType name="CreateUsersResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the CreateUser operation. Errors contains a list of errors that
+        occurred. If a user already exists in the system, it will be returned as an error
+        and the UserURI will be returned as the InterplayURI in the error object.
+        If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="DeleteGroups" type="tns:DeleteGroupsType" />
+
+  <xsd:complexType name="DeleteGroupsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for DeleteGroups operation. If OnlyIfEmpty is set, this operation will
+        fail if the group is not empty.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="GroupURIs" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="OnlyIfEmpty" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="DeleteGroupsResponse" type="tns:DeleteGroupsResponseType" />
+
+  <xsd:complexType name="DeleteGroupsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the DeleteGroups operation. Errors contains a list of errors that
+        occurred. If the group does not exist or "OnlyIfEmpty" was specified but the group is
+        not empty, then an error will be returned with the GroupURI as the InterplayURI.
+        If there are no errors, the Errors element is omitted entirely. A successful operation does
+        not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetGroups" type="tns:GetGroupsType" />
+
+  <xsd:complexType name="GetGroupsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for GetGroups operation. For a list of all groups, pass in the WorkgroupURI.
+        For specific groups, pass in the individual GroupURIs. If "IncludeUserMembership" is
+        true, each group will also contain a list of UserURIs.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="WorkgroupURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="GroupURIs" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="IncludeUserMembership" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetGroupsResponse" type="tns:GetGroupsResponseType" />
+
+  <xsd:complexType name="GetGroupsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetGroups operation. Errors contains a list of errors that
+        occurred. If a group does not exist, then an error will be returned with the GroupURI
+        as the InterplayURI. If there are no errors, the Errors element is omitted entirely.
+        A successful operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Groups" type="tns:GroupListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetUsers" type="tns:GetUsersType" />
+
+  <xsd:complexType name="GetUsersType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for GetUsers operation. For a list of all users, pass in the WorkgroupURI.
+        For specific users, pass in the individual UserURIs. If "IncludeGroupMembership" is
+        true, each group will also contain a list of GroupURIs.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="WorkgroupURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="UserURIs" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="IncludeGroupMembership" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="GetUsersResponse" type="tns:GetUsersResponseType" />
+
+  <xsd:complexType name="GetUsersResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the GetUsers operation. Errors contains a list of errors that
+        occurred. If a user does not exist, then an error will be returned with the UserURI
+        as the InterplayURI. If there are no errors, the Errors element is omitted entirely.
+        A successful operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Users" type="tns:UserListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ModifyGroup" type="tns:ModifyGroupType" />
+
+  <xsd:complexType name="ModifyGroupType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for ModifyGroup operation. Can optionally change the description,
+        permission level, add members, or remove members.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="GroupURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="NewDescription" type="xsd:string" />
+      <xsd:element minOccurs="0" name="NewPermissionLevel" type="xsd:string" />
+      <xsd:element minOccurs="0" name="MembersToAdd" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="MembersToRemove" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ModifyGroupResponse" type="tns:ModifyGroupResponseType" />
+
+  <xsd:complexType name="ModifyGroupResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the ModifyGroup operation. Errors contains a list of errors that
+        occurred. If the group does not exist or cannot be modified, then an error will be
+        returned with the GroupURI as the InterplayURI. If a user cannot be added or removed from
+        the group, it will be returned as an error and the UserURI will be returned as the
+        InterplayURI in the error object. If there are no errors, the Errors element is omitted
+        entirely. A successful operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ModifyUsers" type="tns:ModifyUsersType" />
+
+  <xsd:complexType name="ModifyUsersType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Parameters for ModifyUsers operation. Each UserModificationType should contains the
+        modifications desired for the user. If any fields in the UserModificationType are
+        not present, it is assumed they should remain the same value.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="UserModifications" type="tns:UserModificationListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="ModifyUsersResponse" type="tns:ModifyUsersResponseType" />
+
+  <xsd:complexType name="ModifyUsersResponseType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The response from the ModifyUser operation. Errors contains a list of errors that
+        occurred. If a user does not exist in the system, it will be returned as an error
+        and the UserURI will be returned as the InterplayURI in the error object.
+        If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="common:ErrorListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <!-- COMMON TYPES (Alphabetical) -->
+
+  <xsd:element name="Group" type="tns:GroupType" />
+
+  <xsd:complexType name="GroupType">
+    <xsd:annotation>
+      <xsd:documentation>
+        An group in the Interplay system. Has a GroupURI, permission level, and may contain a
+        user membership list (represented as UserURIs). A GroupURI is a special form of
+        InterplayURI:
+
+        interplay://$WG?group=$GROUP_NAME
+        ex. interplay://WGA3?group=journalist
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="GroupURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Description" type="xsd:string" />
+      <xsd:element minOccurs="0" name="PermissionLevel" type="xsd:string" />
+      <xsd:element minOccurs="0" name="UserURIs" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="GroupListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of GroupTypes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Group" type="tns:GroupType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:element name="User" type="tns:UserType" />
+
+  <xsd:complexType name="UserType">
+    <xsd:annotation>
+      <xsd:documentation>
+        An user in the Interplay system. Has an UserURI, password, description, email,
+        permission level, and may belong to groups (represented as GroupURIs). An UserURI is a
+        special form of InterplayURI:
+
+        interplay://$WG?username=$USER_NAME
+        ex. interplay://WGA3?username=jsmith
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="UserURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Password" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Description" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Email" type="xsd:string" />
+      <xsd:element minOccurs="0" name="PermissionLevel" type="xsd:string" />
+      <xsd:element minOccurs="0" name="GroupURIs" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="UserListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of UserTypes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="User" type="tns:UserType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="UserModificationType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The modifications to perform on a user. Has an UserURI, and fields for setting a new
+        password, description, and email. In addition, a list of groupURIs can
+        be passed in to add the user to groups or remove the user from groups. If any field is
+        not passed in, it is assumed the field should remain the current value.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="UserURI" type="xsd:string" />
+      <xsd:element minOccurs="0" name="NewPassword" type="xsd:string" />
+      <xsd:element minOccurs="0" name="NewDescription" type="xsd:string" />
+      <xsd:element minOccurs="0" name="NewEmail" type="xsd:string" />
+      <xsd:element minOccurs="0" name="AddToGroups" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="RemoveFromGroups" type="common:InterplayURIListType" />
+      <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="UserModificationListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of UserModificationTypes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="UserModification" type="tns:UserModificationType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:element name="UserManagementFaultType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A system error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The
+        Details contains additional information more useful for debugging.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Message" type="xsd:string" />
+        <xsd:element name="Details" type="xsd:string" />
+        <xsd:element minOccurs="0" name="Extension" type="common:ExtensionType" />
+        <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+      </xsd:sequence>
+      <xsd:attribute name="Code" type="xsd:string" use="required" />
+      <xsd:anyAttribute processContents="lax" />
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

@@ -1,0 +1,262 @@
+<?xml version='1.0' encoding='UTF-8'?><xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/assets/types" version="1.0" xmlns:tns="http://avid.com/interplay/ws/assets/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:complexType name="FileLocationDetailsListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of FileLocationDetailsType
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="FileLocationDetails" type="tns:FileLocationDetailsType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+    <xsd:complexType name="FileLocationDetailsType">
+       <xsd:annotation>
+         <xsd:documentation>
+           A pairing of an InterplayURI and its corresponding FileLocation types
+         </xsd:documentation>
+       </xsd:annotation>
+       <xsd:sequence>
+         <xsd:element name="InterplayURI" type="xsd:string" />
+         <xsd:element name="FileLocations" type="tns:FileLocationListType" />
+         <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType" />
+         <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+       </xsd:sequence>
+     </xsd:complexType>
+
+  <xsd:complexType name="FileLocationListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of FileLocationDetailsTypes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="FileLocation" type="tns:FileLocationType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="FileLocationType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The details relating to a media file, such as name, track, status, file path, type, creator, format, and size.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element name="Name" type="xsd:string" />
+      <xsd:element name="Track" type="xsd:string" />
+      <xsd:element name="Status" type="xsd:string" />
+      <xsd:element name="FilePath" type="xsd:string" />
+      <xsd:element name="Type" type="xsd:string" />
+      <xsd:element name="CreatedBy" type="xsd:string" />
+      <xsd:element name="Format" type="xsd:string" />
+      <xsd:element name="Size" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+
+  <xsd:complexType name="AssetDescriptionListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of AssetDescriptions.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="AssetDescription" type="tns:AssetDescriptionType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="AssetDescriptionType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A pairing of an InterplayURI representing an asset along with a set of attributes
+        describing it.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string" />
+      <xsd:element name="Attributes" type="tns:AttributeListType" />
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="AttributeType">
+    <xsd:annotation>
+      <xsd:documentation>
+        Represents an attribute. Can be used as a reference to an attribute by leaving the content
+        empty, or can represent an attribute and its value, with its value being the content of the
+        tag.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="Group" type="xsd:string" use="required" />
+        <xsd:attribute name="Name" type="xsd:string" use="required" />
+        <xsd:anyAttribute processContents="lax" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="AttributeListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of attributes.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Attribute" type="tns:AttributeType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="AttributeConditionType">
+    <xsd:sequence>
+      <xsd:element name="Attribute" type="tns:AttributeType" />
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:attribute name="Condition" type="xsd:string" use="required" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="CategoryConditionType">
+    <xsd:attribute name="Category" type="xsd:string" use="required" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="FileInUseConditionType">
+    <xsd:attribute name="InUse" type="xsd:boolean" use="required" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="ResolutionConditionType">
+    <xsd:attribute name="Resolution" type="xsd:string" use="required" />
+    <xsd:attribute name="Condition" type="xsd:string" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="ErrorType">
+    <xsd:annotation>
+      <xsd:documentation>
+        An error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The
+        Details contains additional information more useful for debugging. If the error pertained
+        to a particular node, an InterplayURI will be specified.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="InterplayURI" type="xsd:string" />
+      <xsd:element name="Message" type="xsd:string" />
+      <xsd:element name="Details" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:attribute name="Code" type="xsd:string" use="required" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="ErrorListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of Errors.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Error" type="tns:ErrorType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ExtensionType">
+    <xsd:annotation>
+      <xsd:documentation>
+        An extension element that allows for compatibility with future versions. This helps
+        allow Avid to extend future versions of the service without breaking existing clients.
+        This pattern is discussed by Dave Orchard in several articles, the best of which are:
+        http://www.pacificspirit.com/Authoring/Compatibility/ExaminingElementWildcardSiblings.html
+        http://www.xml.com/pub/a/2004/10/27/extend.html?page=4
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:any maxOccurs="unbounded" minOccurs="1" namespace="##targetNamespace" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:complexType name="InterplayURIListType">
+    <xsd:annotation>
+      <xsd:documentation>
+        A list of InterplayURIs. An InterplayURI can represent a node by workgroup and path,
+        moniker, or MOBID. An InterplayURI has the following form:
+
+        Path: interplay://$WG/$PATH
+        ex. interplay://WGA3/projects/race08/debate.jpg
+
+        Moniker: interplay://$WG?moniker=$MONIKER
+        ex. interplay://WGA3?moniker=abc123
+
+        Mob ID: interplay://$WG?mobid=$MOBID
+        ex. interplay://WGA3?mobid=060a2b340101010101010f0013-000000-0000000000000032-060e2b347f7f-2a80
+
+        Source ID: interplay://$WG?sourceid=$MOBID
+        interplay://WGA?sourceid=060a2b340101010101010f0013-000000-000000003d40ede1-060e2b347f7f-2a80
+
+        Media Services Job:
+        interplay://WGA/DMS?jobid=1260980985656.1
+
+        Transfer Job:
+        interplay://WGA/XFER?jobid=27_osi-tm
+
+        User: interplay://$WG?username=$USER
+        ex. interplay://WGA3?username=jsmith
+
+        Group: interplay://$WG?group=$GROUP
+        ex. interplay://WGA3?group=journalist
+
+        Workgroup: interplay://$WG
+        ex. interplay://WGA3
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="InterplayURI" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="SearchGroupType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="AttributeCondition" type="tns:AttributeConditionType" />
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="CategoryCondition" type="tns:CategoryConditionType" />
+      <xsd:element maxOccurs="1" minOccurs="0" name="FileInUseCondition" type="tns:FileInUseConditionType" />
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="ResolutionCondition" type="tns:ResolutionConditionType" />
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="SearchGroup" type="tns:SearchGroupType" />
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:attribute name="Operator" type="xsd:string" use="required" />
+    <xsd:attribute name="Negated" type="xsd:boolean" use="optional" />
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+  <xsd:element name="UserCredentials" type="tns:UserCredentialsType" />
+
+  <xsd:complexType name="UserCredentialsType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The user credentials are the username and password used to authenticate into the assets
+        server. They must be present with every request as part of the SOAP header. Invalid
+        credentials will result in a returned error.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Username" type="xsd:string" />
+      <xsd:element name="Password" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType" />
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax" />
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax" />
+  </xsd:complexType>
+
+</xsd:schema>

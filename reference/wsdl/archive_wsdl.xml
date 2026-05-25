@@ -1,0 +1,364 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="Archive" targetNamespace="http://avid.com/interplay/ws/archive" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/archive" xmlns:types="http://avid.com/interplay/ws/archive/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xsd:schema xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/archive" xmlns:types="http://avid.com/interplay/ws/archive/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://avid.com/interplay/ws/archive/types" schemaLocation="http://192.168.0.21/services/Archive?xsd=archive.xsd" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="CreateFoldersResponse">
+    <wsdl:part element="types:CreateFoldersResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetAttributesRequest">
+    <wsdl:part element="types:GetAttributes" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetFileStatusRequest">
+    <wsdl:part element="types:SetFileStatus" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetChildrenResponse">
+    <wsdl:part element="types:GetChildrenResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetLatestRequest">
+    <wsdl:part element="types:GetLatest" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SetFileStatusResponse">
+    <wsdl:part element="types:SetFileStatusResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetHeadframeRequest">
+    <wsdl:part element="types:GetHeadframe" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckInAAFRequest">
+    <wsdl:part element="types:CheckInAAF" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateFoldersRequest">
+    <wsdl:part element="types:CreateFolders" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetAttributesResponse">
+    <wsdl:part element="types:GetAttributesResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SearchResponse">
+    <wsdl:part element="types:SearchResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetFileDetailsRequest">
+    <wsdl:part element="types:GetFileDetails" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetLatestResponse">
+    <wsdl:part element="types:GetLatestResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ArchiveFault">
+    <wsdl:part element="types:ArchiveFault" name="fault">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CheckInAAFResponse">
+    <wsdl:part element="types:CheckInAAFResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetChildrenRequest">
+    <wsdl:part element="types:GetChildren" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SearchRequest">
+    <wsdl:part element="types:Search" name="body">
+    </wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetFileDetailsResponse">
+    <wsdl:part element="types:GetFileDetailsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetHeadframeResponse">
+    <wsdl:part element="types:GetHeadframeResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="ArchivePortType">
+    <wsdl:operation name="CheckInAAF">
+<wsdl:documentation>
+        Re-registers an Avid AAF asset in the Interplay Archive database.
+
+        Since: 1.3
+        Modified: 1.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:CheckInAAFRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CheckInAAFResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetAttributes">
+<wsdl:documentation>
+        Gets a set of attributes for a list of assets in the Interplay Archive database.
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetAttributesRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetAttributesResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetFileDetails">
+<wsdl:documentation>
+        Get the source file locations and statuses for one or more assets.
+
+        Since: 2.4
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetFileDetailsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetFileDetailsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetChildren">
+<wsdl:documentation>
+        Gets the child nodes of the passed in location in the Interplay Archive database.
+        Optionally includes or excludes files, folders, or MOBs. An optional name filter
+        (* wildcards are allowed) can restrict the return set to matching nodes.
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetChildrenRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetChildrenResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetHeadframe">
+<wsdl:documentation>
+        Gets the headframe of an asset in the Interplay Archive database
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetHeadframeRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetHeadframeResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetLatest">
+<wsdl:documentation>
+        Gets the latest version of an asset in the Interplay Archive database
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetLatestRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetLatestResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Search">
+<wsdl:documentation>
+        Search for assets in the Interplay Archive database.
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:SearchRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SearchResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetFileStatus">
+<wsdl:documentation>
+        Sets the status for a list of file mobs in the Interplay Archive database.
+
+        Since: 1.3
+      </wsdl:documentation>
+      <wsdl:input message="tns:SetFileStatusRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:SetFileStatusResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateFolders">
+<wsdl:documentation>
+        Creates new folders in the Interplay Archive system.
+
+        Since: 3.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateFoldersRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateFoldersResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:ArchiveFault" name="ArchiveFault">
+    </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ArchivePortBinding" type="tns:ArchivePortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="CheckInAAF">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CheckInAAFRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetAttributes">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetAttributesRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateFolders">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateFoldersRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetFileDetails">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetFileDetailsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetChildren">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetChildrenRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetHeadframe">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetHeadframeRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetLatest">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetLatestRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="Search">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SearchRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SetFileStatus">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:SetFileStatusRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="ArchiveFault">
+        <soap:fault name="ArchiveFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Archive">
+<wsdl:documentation>
+      The Archive service is a SOAP-based entry point into the Avid Interplay archive database.
+    </wsdl:documentation>
+    <wsdl:port binding="tns:ArchivePortBinding" name="ArchivePort">
+      <soap:address location="http://192.168.0.21/services/Archive" />
+    <wsp:Policy>
+        <!-- This service supports both MTOM-enabled and non-MTOM-enabled clients -->
+        <mtom:OptimizedMimeSerialization wsp:Optional="true" />
+      </wsp:Policy>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,292 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="UserManagement" targetNamespace="http://avid.com/interplay/ws/user" xmlns:common="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/user" xmlns:types="http://avid.com/interplay/ws/user/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+<xsd:schema xmlns:common="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/user" xmlns:types="http://avid.com/interplay/ws/user/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://avid.com/interplay/ws/user/types" schemaLocation="http://192.168.0.21/services/UserManagement?xsd=user.xsd" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="ModifyUsersResponse">
+    <wsdl:part element="types:ModifyUsersResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetGroupsRequest">
+    <wsdl:part element="types:GetGroups" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ModifyGroupResponse">
+    <wsdl:part element="types:ModifyGroupResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateGroupsResponse">
+    <wsdl:part element="types:CreateGroupsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ModifyGroupRequest">
+    <wsdl:part element="types:ModifyGroup" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateUsersResponse">
+    <wsdl:part element="types:CreateUsersResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetUsersResponse">
+    <wsdl:part element="types:GetUsersResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ModifyUsersRequest">
+    <wsdl:part element="types:ModifyUsers" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DeleteGroupsResponse">
+    <wsdl:part element="types:DeleteGroupsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetGroupsResponse">
+    <wsdl:part element="types:GetGroupsResponse" name="body">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateUsersRequest">
+    <wsdl:part element="types:CreateUsers" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DeleteGroupsRequest">
+    <wsdl:part element="types:DeleteGroups" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetUsersRequest">
+    <wsdl:part element="types:GetUsers" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CreateGroupsRequest">
+    <wsdl:part element="types:CreateGroups" name="body">
+    </wsdl:part>
+    <wsdl:part element="common:UserCredentials" name="credentialsHeader">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="UserManagementFault">
+    <wsdl:part element="types:UserManagementFaultType" name="fault">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="UserManagementPortType">
+    <wsdl:operation name="CreateGroups">
+<wsdl:documentation>
+        Creates new user groups in the Interplay system.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateGroupsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateGroupsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:UserManagementFault" name="UserManagementFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateUsers">
+<wsdl:documentation>
+        Creates new users in the Interplay system.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:CreateUsersRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:CreateUsersResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:UserManagementFault" name="UserManagementFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteGroups">
+<wsdl:documentation>
+        Deletes user groups from the Interplay system.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:DeleteGroupsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:DeleteGroupsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:UserManagementFault" name="UserManagementFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroups">
+<wsdl:documentation>
+        Gets user groups in the Interplay system.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetGroupsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetGroupsResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:UserManagementFault" name="UserManagementFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetUsers">
+<wsdl:documentation>
+        Gets users in the Interplay system.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:GetUsersRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:GetUsersResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:UserManagementFault" name="UserManagementFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ModifyGroup">
+<wsdl:documentation>
+        Modifies a user group in the Interplay system, optionally allowing users
+        to be added or removed.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:ModifyGroupRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ModifyGroupResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:UserManagementFault" name="UserManagementFault">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ModifyUsers">
+<wsdl:documentation>
+        Modifies users in the Interplay system.
+
+        Since: 1.2
+      </wsdl:documentation>
+      <wsdl:input message="tns:ModifyUsersRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:ModifyUsersResponse">
+    </wsdl:output>
+      <wsdl:fault message="tns:UserManagementFault" name="UserManagementFault">
+    </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="UserManagementPortBinding" type="tns:UserManagementPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="CreateGroups">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateGroupsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UserManagementFault">
+        <soap:fault name="UserManagementFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="CreateUsers">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:CreateUsersRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UserManagementFault">
+        <soap:fault name="UserManagementFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteGroups">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:DeleteGroupsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UserManagementFault">
+        <soap:fault name="UserManagementFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroups">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetGroupsRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UserManagementFault">
+        <soap:fault name="UserManagementFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetUsers">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:GetUsersRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UserManagementFault">
+        <soap:fault name="UserManagementFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ModifyGroup">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:ModifyGroupRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UserManagementFault">
+        <soap:fault name="UserManagementFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ModifyUsers">
+      <soap:operation soapAction="" />
+      <wsdl:input>
+        <soap:header message="tns:ModifyUsersRequest" part="credentialsHeader" use="literal">
+        </soap:header>
+        <soap:body parts="body" use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UserManagementFault">
+        <soap:fault name="UserManagementFault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="UserManagement">
+<wsdl:documentation>
+      The User service is a SOAP-based entry point into the Avid Interplay user management system.
+
+      WARNING: Integrators should be aware that user, group, and permission management may change in future versions of
+      Interplay. Unfortunately, due to the nature of these changes, some aspects of the User Management Service may not
+      be fully compatible with the next generation of Interplay.
+    </wsdl:documentation>
+    <wsdl:port binding="tns:UserManagementPortBinding" name="UserManagementPort">
+      <soap:address location="http://192.168.0.21/services/UserManagement" />
+    <wsp:Policy>
+        <!-- This service supports both MTOM-enabled and non-MTOM-enabled clients -->
+        <mtom:OptimizedMimeSerialization wsp:Optional="true" />
+      </wsp:Policy>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
