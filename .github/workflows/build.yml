@@ -11,10 +11,10 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact: InterplayExplorer.exe
+            artifact: MCExplorer.exe
             label: Windows
           - os: macos-latest
-            artifact: InterplayExplorer
+            artifact: MCExplorer
             label: macOS
 
     runs-on: ${{ matrix.os }}
@@ -38,20 +38,13 @@ jobs:
 
       - name: Build
         working-directory: app
-        run: >
-          pyinstaller
-          --onefile
-          --windowed
-          --name InterplayExplorer
-          --hidden-import keyring.backends.Windows
-          --hidden-import keyring.backends.fail
-          interplay_explorer.py
+        run: python build.py
 
       - name: Upload artifact (manual build)
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: InterplayExplorer-${{ matrix.label }}
+          name: MCExplorer-${{ matrix.label }}
           path: app/dist/${{ matrix.artifact }}
           retention-days: 7
 

@@ -1,21 +1,15 @@
 @echo off
+cd /d "%~dp0"
+
 echo ============================================================
-echo  Interplay Project Explorer - Windows Build
+echo  MediaCentral Explorer - Windows Build
 echo ============================================================
 
-:: Install runtime dependencies + build tool
 pip install -r requirements.txt
-pip install pyinstaller>=6.0.0
+pip install "pyinstaller>=6.0.0"
 
-:: Build standalone exe
-pyinstaller ^
-  --onefile ^
-  --windowed ^
-  --name "InterplayExplorer" ^
-  --hidden-import "keyring.backends.Windows" ^
-  --hidden-import "keyring.backends.fail" ^
-  interplay_explorer.py
+python build.py
 
 echo.
-echo Build complete: dist\InterplayExplorer.exe
+echo Build complete: dist\MCExplorer.exe
 pause
