@@ -30,12 +30,13 @@ except ImportError:
 
 FIELD_DEFS = [
     # Always fetched, not shown in dialog
-    ("Asset",  "Name",             "Name",             True,  ""),
-    ("System", "Name",             "Clip Name",        True,  ""),   # MOB clip name
-    ("Asset",  "Type",             "Node Type",        True,  ""),
+    ("Asset",  "Name",          "Name",             True,  ""),
+    ("User",   "Display Name",  "Clip Name",        True,  ""),   # primary MOB clip name
+    ("Asset",  "Type",          "Node Type",        True,  ""),
+    ("System", "Type",          "Node Type (sys)",  True,  ""),   # fallback type for MOBs
     # Core — shown on the main clip line
-    ("System", "Duration",         "Duration",         True,  "Core"),
-    ("System", "Media Status",     "Media Status",     True,  "Core"),
+    ("System", "Duration",      "Duration",         True,  "Core"),
+    ("System", "Media Status",  "Media Status",     True,  "Core"),
     # Dates — shown as an indented sub-line
     ("System", "Created By",       "Created By",       True,  "Dates"),
     ("System", "Creation Date",    "Creation Date",    True,  "Dates"),
@@ -46,9 +47,7 @@ FIELD_DEFS = [
     ("System", "End",              "End Timecode",     False, "Timecode"),
     # Technical — shown as extras
     ("System", "Tracks",           "Tracks",           False, "Technical"),
-    ("System", "Type",             "Asset Type",       False, "Technical"),
     ("System", "Format",           "Format",           False, "Technical"),
-    ("System", "Resolution",       "Resolution",       False, "Technical"),
     ("System", "Tape",             "Tape / Reel",      False, "Technical"),
     ("System", "Original Project", "Original Project", False, "Technical"),
     # Production — shown as extras
@@ -57,7 +56,7 @@ FIELD_DEFS = [
     ("User",   "Take",             "Take",             False, "Production"),
     ("User",   "Camera",           "Camera",           False, "Production"),
     ("User",   "Camroll",          "Camera Roll",      False, "Production"),
-    ("User",   "Shoot Date",       "Shoot Date",       False, "Production"),
+    ("System", "Shoot Date",       "Shoot Date",       False, "Production"),
 ]
 
 # Fields always shown — not user-toggleable
@@ -151,6 +150,19 @@ def natural_key(s: str) -> list:
     return [int(c) if c.isdigit() else c.lower()
             for c in re.split(r"(\d+)", s or "")]
 
+def fmt_date(iso: str) -> str:
+    """Convert '2026-04-28T10:13:17.000+1000' → '28 Apr 2026'."""
+    if not iso:
+        return ""
+    try:
+        dt = datetime.strptime(iso[:19], "%Y-%m-%dT%H:%M:%S")
+    except Exception:
+        try:
+            dt = datetime.strptime(iso[:10], "%Y-%m-%d")
+        except Exception:
+            return iso
+    return f"{dt.day} {dt.strftime('%b')} {dt.year}"
+
 # ---------------------------------------------------------------------------
 # Interplay SOAP client
 # ---------------------------------------------------------------------------
@@ -211,9 +223,10 @@ class InterplayClient:
                 group = attr.get("Group", "").strip().title()
                 name  = attr.get("Name",  "").strip()
                 attrs[f"{group}.{name}"] = (attr.text or "").strip()
-            # Clip name: prefer Asset.Name, then System.Name, then URI leaf
+            # Clip name: prefer Asset.Name (folders), then User.Display Name (MOBs),
+            # then fall back to the last path component of the URI
             display_name = (attrs.get("Asset.Name")
-                            or attrs.get("System.Name")
+                            or attrs.get("User.Display Name")
                             or uri.rstrip("/").rsplit("/", 1)[-1])
             # Type: prefer Asset.Type (folder tree), fall back to System.Type (MOBs)
             asset_type = (attrs.get("Asset.Type") or attrs.get("System.Type", "")).lower()
@@ -355,7 +368,7 @@ def format_project(project_name: str,
 
             # ── Main line: Type   Name   Duration   Status ────────────────────
             dur    = attrs.get("System.Duration",    "") if ("System", "Duration")     in active else ""
-            status = attrs.get("System.Media Status","") if ("System", "Media Status") in active else ""
+            status = attrs.get("System.Media Status","").capitalize() if ("System", "Media Status") in active else ""
 
             name_col = name[:name_w].ljust(name_w)
             main_parts = [f"  {tcode}  {name_col}"]
@@ -368,9 +381,9 @@ def format_project(project_name: str,
             # ── Date sub-line ─────────────────────────────────────────────────
             date_parts: list[str] = []
             cb = attrs.get("System.Created By",    "")
-            cd = attrs.get("System.Creation Date", "")
+            cd = fmt_date(attrs.get("System.Creation Date", ""))
             mb = attrs.get("System.Modified By",   "")
-            md = attrs.get("System.Modified Date", "")
+            md = fmt_date(attrs.get("System.Modified Date", ""))
 
             show_created  = ("System", "Created By")    in active or ("System", "Creation Date")  in active
             show_modified = ("System", "Modified By")   in active or ("System", "Modified Date") in active
