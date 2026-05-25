@@ -346,77 +346,88 @@ def format_project(project_name: str,
     lines.append("─" * LINE_WIDTH)
     lines.append("")
 
-    for section in sections:
-        heading = section["name"].upper()
-        lines.append(heading)
-        lines.append("─" * min(len(heading), LINE_WIDTH))
+    n_sec = len(sections)
+    for si, section in enumerate(sections):
+        sec_last = (si == n_sec - 1)
+        s_branch = "└── " if sec_last else "├── "
+        i_cont   = "    " if sec_last else "│   "   # indent under this section
 
-        items = section["items"]
-        if not items:
-            err = section.get("error", "")
-            lines.append(f"  [Error: {err}]" if err else "  (empty)")
-            lines.append("")
-            continue
+        items   = section["items"]
+        n_items = len(items)
+        count   = f"  [{n_items} item{'s' if n_items != 1 else ''}]"
+        lines.append(f"{s_branch}{section['name'].upper()}{count}")
 
-        # Calculate name column width (capped so lines stay reasonable)
-        name_w = min(max(len(i["name"]) for i in items), 44)
+        if section.get("error"):
+            lines.append(f"{i_cont}└── [Error: {section['error']}]")
+        elif not items:
+            lines.append(f"{i_cont}└── (empty)")
+        else:
+            name_w = min(max(len(i["name"]) for i in items), 44)
 
-        for item in items:
-            attrs = item["attrs"]
-            name  = item["name"]
-            tcode = _TYPE_LABEL.get(item.get("type", "").lower(), "   ")
+            for ji, item in enumerate(items):
+                item_last = (ji == n_items - 1)
+                i_branch  = "└── " if item_last else "├── "
+                sub_cont  = "    " if item_last else "│   "  # indent under item
 
-            # ── Main line: Type   Name   Duration   Status ────────────────────
-            dur    = attrs.get("System.Duration",    "") if ("System", "Duration")     in active else ""
-            status = attrs.get("System.Media Status","").capitalize() if ("System", "Media Status") in active else ""
+                attrs = item["attrs"]
+                name  = item["name"]
+                tcode = _TYPE_LABEL.get(item.get("type", "").lower(), "   ")
 
-            name_col = name[:name_w].ljust(name_w)
-            main_parts = [f"  {tcode}  {name_col}"]
-            if dur:
-                main_parts.append(dur.ljust(12))
-            if status:
-                main_parts.append(status)
-            lines.append("   ".join(main_parts).rstrip())
+                dur    = attrs.get("System.Duration",     "") if ("System", "Duration")    in active else ""
+                status = attrs.get("System.Media Status", "").capitalize() if ("System", "Media Status") in active else ""
 
-            # ── Date sub-line ─────────────────────────────────────────────────
-            date_parts: list[str] = []
-            cb = attrs.get("System.Created By",    "")
-            cd = fmt_date(attrs.get("System.Creation Date", ""))
-            mb = attrs.get("System.Modified By",   "")
-            md = fmt_date(attrs.get("System.Modified Date", ""))
+                name_col   = name[:name_w].ljust(name_w)
+                main_parts = [f"{i_cont}{i_branch}{name_col}"]
+                if dur:
+                    main_parts.append(dur.ljust(12))
+                if status:
+                    main_parts.append(status)
+                if tcode.strip():
+                    main_parts.append(tcode.strip())
+                lines.append("   ".join(main_parts).rstrip())
 
-            show_created  = ("System", "Created By")    in active or ("System", "Creation Date")  in active
-            show_modified = ("System", "Modified By")   in active or ("System", "Modified Date") in active
+                # ── Date sub-line ─────────────────────────────────────────────
+                cb = attrs.get("System.Created By",    "")
+                cd = fmt_date(attrs.get("System.Creation Date", ""))
+                mb = attrs.get("System.Modified By",   "")
+                md = fmt_date(attrs.get("System.Modified Date", ""))
 
-            if show_created and (cb or cd):
-                date_parts.append(f"Created: {' '.join(filter(None, [cb, cd]))}")
-            if show_modified and (mb or md):
-                date_parts.append(f"Modified: {' '.join(filter(None, [mb, md]))}")
-            if date_parts:
-                lines.append("    " + "   |   ".join(date_parts))
+                show_created  = ("System", "Created By")   in active or ("System", "Creation Date")  in active
+                show_modified = ("System", "Modified By")  in active or ("System", "Modified Date")  in active
 
-            # ── Extras sub-line ───────────────────────────────────────────────
-            extra_parts: list[str] = []
-            for g, n, label, _, cat in FIELD_DEFS:
-                if cat in ("", "Core", "Dates"):
-                    continue
-                if (g, n) not in active:
-                    continue
-                val = attrs.get(f"{g}.{n}", "")
-                if val:
-                    extra_parts.append(f"{label}: {val}")
-            if extra_parts:
-                # Wrap into ~LINE_WIDTH chunks
-                line = "    "
-                for part in extra_parts:
-                    if len(line) + len(part) + 3 > LINE_WIDTH and line.strip():
+                date_parts: list[str] = []
+                if show_created and (cb or cd):
+                    date_parts.append(f"Created: {' '.join(filter(None, [cb, cd]))}")
+                if show_modified and (mb or md):
+                    date_parts.append(f"Modified: {' '.join(filter(None, [mb, md]))}")
+                if date_parts:
+                    lines.append(f"{i_cont}{sub_cont}" + "   |   ".join(date_parts))
+
+                # ── Extras sub-line ───────────────────────────────────────────
+                extra_parts: list[str] = []
+                for g, n, label, _, cat in FIELD_DEFS:
+                    if cat in ("", "Core", "Dates"):
+                        continue
+                    if (g, n) not in active:
+                        continue
+                    val = attrs.get(f"{g}.{n}", "")
+                    if val:
+                        extra_parts.append(f"{label}: {val}")
+                if extra_parts:
+                    pfx  = f"{i_cont}{sub_cont}"
+                    line = pfx
+                    for part in extra_parts:
+                        if len(line) + len(part) + 3 > LINE_WIDTH and line.strip():
+                            lines.append(line.rstrip())
+                            line = pfx + part + "   "
+                        else:
+                            line += part + "   "
+                    if line.strip():
                         lines.append(line.rstrip())
-                        line = "    " + part + "   "
-                    else:
-                        line += part + "   "
-                if line.strip():
-                    lines.append(line.rstrip())
 
+        # Vertical spacer between sections
+        if not sec_last:
+            lines.append("│")
         lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
