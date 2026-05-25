@@ -19,9 +19,33 @@ A cross-platform desktop app (and CLI tool) for browsing an Avid Interplay workg
 
 ## Requirements
 
-- Python 3.13
-- On macOS: `brew install python-tk@3.13`
-- Dependencies: `pip install requests keyring`
+### macOS
+
+1. Install Python 3.13 — [python.org](https://www.python.org/downloads/) or `brew install python@3.13`
+2. Install Tk support: `brew install python-tk@3.13`
+3. Install dependencies:
+
+   ```bash
+   pip install requests keyring
+   ```
+
+### Windows
+
+1. Install Python 3.13 from [python.org](https://www.python.org/downloads/)
+   - On the installer's first screen, check **"Add python.exe to PATH"** before clicking Install
+2. Open **Command Prompt** or **PowerShell** and install dependencies:
+
+   ```bat
+   pip install requests keyring
+   ```
+
+3. Verify Python is available:
+
+   ```bat
+   python --version
+   ```
+
+   If `python` is not recognised, restart your terminal after installing. If it still fails, use the full path: `C:\Users\<you>\AppData\Local\Programs\Python\Python313\python.exe`
 
 ---
 
@@ -123,7 +147,7 @@ python app\interplay_explorer.py ^
 
 Binaries are built automatically via GitHub Actions on every release.
 
-### macOS
+### Build on macOS
 
 ```bash
 sh app/build_mac.sh
@@ -132,7 +156,7 @@ sh app/build_mac.sh
 
 Requires `brew install python-tk@3.13`.
 
-### Windows
+### Build on Windows
 
 ```bat
 app\build_windows.bat
