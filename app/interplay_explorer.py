@@ -425,8 +425,13 @@ def format_project(project_name: str,
                     if line.strip():
                         lines.append(line.rstrip())
 
-        # Vertical spacer between sections
+                # Blank line between items within a section
+                if not item_last:
+                    lines.append(i_cont.rstrip())
+
+        # Extra spacing between sections
         if not sec_last:
+            lines.append("│")
             lines.append("│")
         lines.append("")
 
