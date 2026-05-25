@@ -862,7 +862,92 @@ class App(tk.Tk):
 
 
 # ---------------------------------------------------------------------------
+# CLI entry point  (no GUI — useful for testing connectivity)
+# ---------------------------------------------------------------------------
+
+def _cli():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Interplay Project Explorer — CLI mode")
+    parser.add_argument("--server",   required=True, help="Server address")
+    parser.add_argument("--user",     required=True, help="Username")
+    parser.add_argument("--password", required=True, help="Password")
+    parser.add_argument("--path",     required=True,
+                        help='Interplay path, e.g. interplay://AvidWorkgroup/Projects/2026')
+    parser.add_argument("--project",
+                        help="Project name to load (substring match). "
+                             "Omit to list projects only.")
+    parser.add_argument("--fields",   nargs="*",
+                        help="Override active fields as Group.Name pairs, "
+                             "e.g. System.Duration System.Media\\ Status")
+    args = parser.parse_args()
+
+    client = InterplayClient(args.server, args.user, args.password)
+
+    if not args.project:
+        # ── List projects ────────────────────────────────────────────────────
+        print(f"Listing: {args.path}")
+        try:
+            projects = client.get_children(
+                args.path, folders=True, files=False, mobs=False)
+        except Exception as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            sys.exit(1)
+        if not projects:
+            print("  (no projects found)")
+            return
+        for p in sorted(projects, key=lambda x: natural_key(x["name"])):
+            print(f"  {p['name']}")
+            print(f"    {p['uri']}")
+        print(f"\n{len(projects)} project(s) found.")
+        return
+
+    # ── Load a project ───────────────────────────────────────────────────────
+    print(f"Searching for '{args.project}' in {args.path} …")
+    try:
+        projects = client.get_children(
+            args.path, folders=True, files=False, mobs=False)
+    except Exception as e:
+        print(f"ERROR listing projects: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    matches = [p for p in projects if args.project.lower() in p["name"].lower()]
+    if not matches:
+        print(f"No project matching '{args.project}'.")
+        print("Available projects:")
+        for p in sorted(projects, key=lambda x: natural_key(x["name"])):
+            print(f"  {p['name']}")
+        sys.exit(1)
+
+    proj = matches[0]
+    if len(matches) > 1:
+        print(f"Multiple matches — using: {proj['name']}")
+
+    # Resolve active fields
+    if args.fields:
+        active = frozenset(tuple(f.split(".", 1)) for f in args.fields if "." in f)
+    else:
+        active = DEFAULT_FIELDS
+
+    print(f"Loading: {proj['name']} …\n")
+    try:
+        sections = load_project_data(
+            client, proj["uri"],
+            status_fn=lambda m: print(f"  {m}", flush=True))
+    except Exception as e:
+        print(f"ERROR loading project: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    print(format_project(proj["name"], sections, active))
+
+
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+    import argparse
+    # If any recognised CLI flags are present, skip the GUI entirely
+    if len(sys.argv) > 1:
+        _cli()
+    else:
+        app = App()
+        app.mainloop()
