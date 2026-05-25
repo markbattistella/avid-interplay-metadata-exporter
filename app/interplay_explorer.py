@@ -31,6 +31,7 @@ except ImportError:
 FIELD_DEFS = [
     # Always fetched, not shown in dialog
     ("Asset",  "Name",             "Name",             True,  ""),
+    ("System", "Name",             "Clip Name",        True,  ""),   # MOB clip name
     ("Asset",  "Type",             "Node Type",        True,  ""),
     # Core — shown on the main clip line
     ("System", "Duration",         "Duration",         True,  "Core"),
@@ -203,13 +204,19 @@ class InterplayClient:
         for desc in root.iter(f"{{{TYPES_NS}}}AssetDescription"):
             uri_el = desc.find(f"{{{TYPES_NS}}}InterplayURI")
             uri = (uri_el.text or "").strip() if uri_el is not None else ""
-            # Collect ALL attributes returned — store keyed as "Group.Name"
+            # Collect ALL attributes returned — normalise Group to title-case
+            # so "SYSTEM" and "System" both map to the same key "System.Name"
             attrs: dict[str, str] = {}
             for attr in desc.findall(f".//{{{TYPES_NS}}}Attribute"):
-                key = f"{attr.get('Group','')}.{attr.get('Name','')}"
-                attrs[key] = (attr.text or "").strip()
-            display_name = attrs.get("Asset.Name") or uri.rstrip("/").rsplit("/", 1)[-1]
-            asset_type   = attrs.get("Asset.Type", "").lower()
+                group = attr.get("Group", "").strip().title()
+                name  = attr.get("Name",  "").strip()
+                attrs[f"{group}.{name}"] = (attr.text or "").strip()
+            # Clip name: prefer Asset.Name, then System.Name, then URI leaf
+            display_name = (attrs.get("Asset.Name")
+                            or attrs.get("System.Name")
+                            or uri.rstrip("/").rsplit("/", 1)[-1])
+            # Type: prefer Asset.Type (folder tree), fall back to System.Type (MOBs)
+            asset_type = (attrs.get("Asset.Type") or attrs.get("System.Type", "")).lower()
             assets.append({
                 "uri":   uri,
                 "name":  display_name,
