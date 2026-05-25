@@ -252,24 +252,25 @@ def load_project_data(client: InterplayClient, uri: str,
     Returns list of sections:
         [{"name": str, "items": [{"name", "attrs"}, ...]}, ...]
     """
-    children = None
-    tried    = []
+    tried: list[str] = []
+    folders = loose = None
+
     for try_uri in _uri_variants(uri):
         tried.append(try_uri)
         try:
-            children = client.get_children(try_uri)
+            folders = client.get_children(try_uri, folders=True,  files=False, mobs=False)
+            loose   = client.get_children(try_uri, folders=False, files=True,  mobs=True)
             break
         except RuntimeError as e:
             if "not found" in str(e).lower():
+                folders = loose = None
                 continue
             raise
-    if children is None:
+
+    if folders is None:
         raise RuntimeError("Project not found. Tried:\n" + "\n".join(tried))
 
-    folders = sorted(
-        [a for a in children if is_folder(a)],
-        key=lambda a: natural_key(a["name"]))
-    loose   = [a for a in children if not is_folder(a)]
+    folders = sorted(folders, key=lambda a: natural_key(a["name"]))
 
     sections: list[dict] = []
     if loose:
@@ -294,22 +295,22 @@ def _uri_variants(uri: str):
 def _collect_items(client, uri: str, acc: list, depth: int):
     if depth > 4:
         return
-    children = None
+    sub_folders = items = None
     for try_uri in _uri_variants(uri):
         try:
-            children = client.get_children(try_uri)
+            sub_folders = client.get_children(try_uri, folders=True,  files=False, mobs=False)
+            items       = client.get_children(try_uri, folders=False, files=True,  mobs=True)
             break
         except RuntimeError as e:
             if "not found" in str(e).lower():
+                sub_folders = items = None
                 continue
             raise
-    if children is None:
+    if sub_folders is None:
         raise RuntimeError(f"Path not found: {uri}")
-    for child in children:
-        if is_folder(child):
-            _collect_items(client, child["uri"], acc, depth + 1)
-        else:
-            acc.append(child)
+    acc.extend(items or [])
+    for folder in sub_folders:
+        _collect_items(client, folder["uri"], acc, depth + 1)
 
 # ---------------------------------------------------------------------------
 # Output formatting
@@ -880,6 +881,9 @@ def _cli():
     parser.add_argument("--fields",   nargs="*",
                         help="Override active fields as Group.Name pairs, "
                              "e.g. System.Duration System.Media\\ Status")
+    parser.add_argument("--debug", action="store_true",
+                        help="Print raw asset type/URI info for each item "
+                             "(useful for diagnosing empty sections)")
     args = parser.parse_args()
 
     client = InterplayClient(args.server, args.user, args.password)
@@ -898,7 +902,9 @@ def _cli():
             return
         for p in sorted(projects, key=lambda x: natural_key(x["name"])):
             print(f"  {p['name']}")
-            print(f"    {p['uri']}")
+            if args.debug:
+                print(f"    type : {p.get('type', '(empty)')}")
+                print(f"    uri  : {p['uri']}")
         print(f"\n{len(projects)} project(s) found.")
         return
 
@@ -937,6 +943,19 @@ def _cli():
     except Exception as e:
         print(f"ERROR loading project: {e}", file=sys.stderr)
         sys.exit(1)
+
+    if args.debug:
+        print("\n── DEBUG: raw section data ──")
+        for sec in sections:
+            print(f"\n  [{sec['name']}]  ({len(sec['items'])} item(s))")
+            if sec.get("error"):
+                print(f"    ERROR: {sec['error']}")
+            for item in sec["items"][:5]:
+                print(f"    name : {item['name']}")
+                print(f"    type : {item.get('type', '(empty)')}")
+                print(f"    dur  : {item['attrs'].get('System.Duration', '(empty)')}")
+                print(f"    uri  : {item['uri']}")
+        print("\n── END DEBUG ──\n")
 
     print(format_project(proj["name"], sections, active))
 
