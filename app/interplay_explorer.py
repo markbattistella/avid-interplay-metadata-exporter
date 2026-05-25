@@ -86,6 +86,17 @@ TYPES_NS   = "http://avid.com/interplay/ws/assets/types"
 APP_NAME   = "InterplayExplorer"
 LINE_WIDTH = 72
 
+# Short labels shown in the type column of the output
+_TYPE_LABEL = {
+    "masterclip":  "MC ",
+    "sequence":    "SEQ",
+    "subclip":     "SUB",
+    "effect":      "FX ",
+    "group":       "GRP",
+    "folder":      "DIR",
+    "bin":         "BIN",
+}
+
 # ---------------------------------------------------------------------------
 # Config  (server / path / username / saved field defaults)
 # ---------------------------------------------------------------------------
@@ -327,18 +338,19 @@ def format_project(project_name: str,
             continue
 
         # Calculate name column width (capped so lines stay reasonable)
-        name_w = min(max(len(i["name"]) for i in items), 48)
+        name_w = min(max(len(i["name"]) for i in items), 44)
 
         for item in items:
             attrs = item["attrs"]
             name  = item["name"]
+            tcode = _TYPE_LABEL.get(item.get("type", "").lower(), "   ")
 
-            # ── Main line: Name   Duration   Status ──────────────────────────
+            # ── Main line: Type   Name   Duration   Status ────────────────────
             dur    = attrs.get("System.Duration",    "") if ("System", "Duration")     in active else ""
             status = attrs.get("System.Media Status","") if ("System", "Media Status") in active else ""
 
             name_col = name[:name_w].ljust(name_w)
-            main_parts = [f"  {name_col}"]
+            main_parts = [f"  {tcode}  {name_col}"]
             if dur:
                 main_parts.append(dur.ljust(12))
             if status:
