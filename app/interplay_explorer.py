@@ -884,6 +884,9 @@ def _cli():
     parser.add_argument("--debug", action="store_true",
                         help="Print raw asset type/URI info for each item "
                              "(useful for diagnosing empty sections)")
+    parser.add_argument("--raw-xml", action="store_true",
+                        help="Dump the raw SOAP XML response for the first bin "
+                             "and exit — used to diagnose attribute parsing")
     args = parser.parse_args()
 
     client = InterplayClient(args.server, args.user, args.password)
@@ -935,6 +938,43 @@ def _cli():
     else:
         active = DEFAULT_FIELDS
 
+    # ── Raw XML dump mode ────────────────────────────────────────────────────
+    if getattr(args, "raw_xml", False):
+        import xml.dom.minidom
+        print(f"Fetching children of project URI: {proj['uri']}")
+        # Dump the raw SOAP response for the first bin found
+        try:
+            bins = client.get_children(proj["uri"], folders=True, files=False, mobs=False)
+        except Exception as e:
+            print(f"ERROR listing bins: {e}", file=sys.stderr)
+            sys.exit(1)
+        if not bins:
+            print("No bins found in project.")
+            sys.exit(0)
+        target = bins[0]
+        print(f"\nFirst bin: {target['name']}")
+        print(f"Bin URI:   {target['uri']}\n")
+        print("── Raw SOAP response for GetChildren on that bin ──")
+        ra = "".join(
+            f'<types:Attribute Group="{g}" Name="{n}"/>'
+            for g, n in RETURN_ATTRS)
+        uri = target["uri"]
+        body = (f"<types:GetChildren>"
+                f"<types:InterplayURI>{html_lib.escape(uri)}</types:InterplayURI>"
+                f"<types:IncludeFolders>false</types:IncludeFolders>"
+                f"<types:IncludeFiles>true</types:IncludeFiles>"
+                f"<types:IncludeMOBs>true</types:IncludeMOBs>"
+                f"<types:ReturnAttributes>{ra}</types:ReturnAttributes>"
+                f"</types:GetChildren>")
+        envelope = client._envelope(body)
+        raw = client._post(envelope)
+        try:
+            pretty = xml.dom.minidom.parseString(raw).toprettyxml(indent="  ")
+        except Exception:
+            pretty = raw
+        print(pretty)
+        sys.exit(0)
+
     print(f"Loading: {proj['name']} …\n")
     try:
         sections = load_project_data(
@@ -951,10 +991,13 @@ def _cli():
             if sec.get("error"):
                 print(f"    ERROR: {sec['error']}")
             for item in sec["items"][:5]:
+                print(f"    --- item ---")
                 print(f"    name : {item['name']}")
                 print(f"    type : {item.get('type', '(empty)')}")
-                print(f"    dur  : {item['attrs'].get('System.Duration', '(empty)')}")
                 print(f"    uri  : {item['uri']}")
+                print(f"    attrs returned ({len(item['attrs'])}):")
+                for k, v in sorted(item["attrs"].items()):
+                    print(f"      {k} = {v!r}")
         print("\n── END DEBUG ──\n")
 
     print(format_project(proj["name"], sections, active))
