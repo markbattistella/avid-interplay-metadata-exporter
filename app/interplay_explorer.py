@@ -64,6 +64,8 @@ FIELD_DEFS = [
     ("User",   "Camera",           "Camera",           False, "Production"),
     ("User",   "Camroll",          "Camera Roll",      False, "Production"),
     ("System", "Shoot Date",       "Shoot Date",       False, "Production"),
+    # Markers — requires a separate GetUMIDLocators call per clip
+    ("Markers", "Locators",        "Markers",          False, "Markers"),
 ]
 
 _ALWAYS_ON = frozenset(
@@ -72,7 +74,7 @@ _ALWAYS_ON = frozenset(
 DEFAULT_FIELDS = frozenset(
     (g, n) for g, n, _, default, cat in FIELD_DEFS if default and cat != "")
 
-RETURN_ATTRS = [(g, n) for g, n, _, _, _ in FIELD_DEFS]
+RETURN_ATTRS = [(g, n) for g, n, _, _, cat in FIELD_DEFS if cat != "Markers"]
 
 _MAIN_LINE = {("System", "Duration"), ("System", "Media Status")}
 _DATE_LINE = {("System", "Created By"), ("System", "Creation Date"),
@@ -109,6 +111,30 @@ _TYPE_LABEL = {
     "folder":     "DIR",
     "bin":        "BIN",
 }
+
+def _ui_dir() -> Path:
+    candidates: list[Path] = []
+
+    if getattr(sys, "frozen", False):
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            candidates.append(Path(meipass) / "ui")
+
+        exe_dir = Path(sys.executable).resolve().parent
+        candidates.extend([
+            exe_dir / "ui",
+            exe_dir / "_internal" / "ui",
+            exe_dir.parent / "Resources" / "ui",
+        ])
+    else:
+        candidates.append(_HERE / "ui")
+
+    for candidate in candidates:
+        if (candidate / "index.html").exists():
+            return candidate
+
+    checked = "\n".join(str(p) for p in candidates)
+    raise RuntimeError("Could not find UI assets. Checked:\n" + checked)
 
 # ---------------------------------------------------------------------------
 # Config
@@ -289,6 +315,22 @@ class InterplayClient:
                 f"</types:GetChildren>")
         return self._parse(self._post(self._envelope(body)))
 
+    def get_locators(self, uri: str) -> list[dict]:
+        body = (f"<types:GetUMIDLocators>"
+                f"<types:InterplayURI>{html_lib.escape(uri)}</types:InterplayURI>"
+                f"</types:GetUMIDLocators>")
+        root = ET.fromstring(self._post(self._envelope(body)))
+        self._check_errors(root)
+        locators = []
+        for loc in root.iter(f"{{{TYPES_NS}}}Locator"):
+            locators.append({
+                "timecode": (loc.findtext(f"{{{TYPES_NS}}}Timecode")  or "").strip(),
+                "comment":  (loc.findtext(f"{{{TYPES_NS}}}Comment")   or "").strip(),
+                "username": (loc.findtext(f"{{{TYPES_NS}}}Username")  or "").strip(),
+                "color":    (loc.findtext(f"{{{TYPES_NS}}}Color")     or "").strip(),
+            })
+        return locators
+
 # ---------------------------------------------------------------------------
 # Project loading
 # ---------------------------------------------------------------------------
@@ -429,7 +471,7 @@ def format_project(project_name: str,
 
                 extra_parts: list[str] = []
                 for g, n, label, _, cat in FIELD_DEFS:
-                    if cat in ("", "Core", "Dates"):
+                    if cat in ("", "Core", "Dates", "Markers"):
                         continue
                     if (g, n) not in active:
                         continue
@@ -447,6 +489,25 @@ def format_project(project_name: str,
                             line += part + "   "
                     if line.strip():
                         lines.append(line.rstrip())
+
+                if ("Markers", "Locators") in active:
+                    markers = item.get("markers") or []
+                    if markers:
+                        pfx = f"{i_cont}{sub_cont}"
+                        lines.append(f"{pfx}Markers ({len(markers)}):")
+                        for m in markers:
+                            tc    = m.get("timecode", "").ljust(12)
+                            color = m.get("color",    "").upper().ljust(7)
+                            user  = m.get("username", "")
+                            note  = m.get("comment",  "")
+                            row   = f"{pfx}  {tc}  {color}"
+                            if user:
+                                row += f"  {user}"
+                                if note:
+                                    row += f": {note}"
+                            elif note:
+                                row += f"  {note}"
+                            lines.append(row)
 
                 if not item_last:
                     lines.append(i_cont.rstrip())
@@ -641,13 +702,16 @@ class Api:
 
     def get_config(self) -> dict:
         username = self._cfg.get("username", "")
+        saved = self._cfg.get("default_fields")
+        active = frozenset(tuple(x) for x in saved) if saved else DEFAULT_FIELDS
         return {
-            "server":     self._cfg.get("server", ""),
-            "workgroup":  self._cfg.get("workgroup", "AvidWorkgroup"),
-            "username":   username,
-            "has_password": bool(load_password(username)) if username else False,
-            "start_path": self._cfg.get("start_path", ""),
-            "max_depth":  self._cfg.get("max_depth", 0),
+            "server":         self._cfg.get("server", ""),
+            "workgroup":      self._cfg.get("workgroup", "AvidWorkgroup"),
+            "username":       username,
+            "has_password":   bool(load_password(username)) if username else False,
+            "start_path":     self._cfg.get("start_path", ""),
+            "max_depth":      self._cfg.get("max_depth", 0),
+            "default_fields": [list(f) for f in active],
         }
 
     def get_root_uri(self) -> str:
@@ -656,7 +720,8 @@ class Api:
 
     def save_settings(self, server: str, workgroup: str,
                       username: str, password: str,
-                      start_path: str = "", max_depth: int = 0) -> dict:
+                      start_path: str = "", max_depth: int = 0,
+                      default_fields=None) -> dict:
         server     = server.strip()
         workgroup  = workgroup.strip() or "AvidWorkgroup"
         username   = username.strip()
@@ -673,9 +738,14 @@ class Api:
             return {"ok": False, "error": str(e)}
         password = password or load_password(username)
         client = InterplayClient(server, username, password)
+        if default_fields is not None:
+            fields_to_save = [list(x) for x in
+                              frozenset(tuple(x) for x in default_fields if len(x) == 2)]
+        else:
+            fields_to_save = self._cfg.get("default_fields")
         new_cfg = {**self._cfg, "server": server, "workgroup": workgroup,
                    "username": username, "start_path": start_path,
-                   "max_depth": max_depth}
+                   "max_depth": max_depth, "default_fields": fields_to_save}
         save_config(new_cfg)
         save_password(username, password)
         self._cfg    = new_cfg
@@ -717,6 +787,20 @@ class Api:
             sections = load_project_data(self._client, uri, status_fn=sf)
             saved = self._cfg.get("default_fields")
             active = frozenset(tuple(x) for x in saved) if saved else DEFAULT_FIELDS
+
+            if ("Markers", "Locators") in active:
+                clip_types = {"masterclip", "sequence", "subclip"}
+                clips = [(s, i) for s in sections for i in s["items"]
+                         if i.get("type", "") in clip_types]
+                total = len(clips)
+                for idx, (_, item) in enumerate(clips):
+                    if total > 5 and idx % 5 == 0:
+                        self._push_status(f"Fetching markers… {idx}/{total}")
+                    try:
+                        item["markers"] = self._client.get_locators(item["uri"])
+                    except Exception:
+                        item["markers"] = []
+
             text = format_project(name, sections, active)
             n = sum(len(s["items"]) for s in sections)
             return {"text": text, "summary": f"{n} item{'s' if n != 1 else ''} loaded."}
@@ -857,11 +941,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         _cli()
     else:
-        # Resolve the ui/ folder — works from source and from PyInstaller bundle
-        if getattr(sys, "frozen", False):
-            ui_dir = Path(sys.executable).parent / "ui"
-        else:
-            ui_dir = _HERE / "ui"
+        ui_dir = _ui_dir()
 
         api = Api()
 

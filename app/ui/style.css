@@ -75,6 +75,12 @@ html, body {
 #layout {
   display: flex;
   height: 100vh;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+body.modal-open #layout {
+  filter: blur(4px);
+  transform: scale(0.995);
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
@@ -417,6 +423,8 @@ svg.folder-open { display: none; }
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
   z-index: 40;
   opacity: 0;
   transition: opacity 0.2s;
@@ -525,6 +533,55 @@ svg.folder-open { display: none; }
   font-weight: 400;
   line-height: 1.4;
   margin-top: -2px;
+}
+
+/* ── Field groups (Metadata Fields section) ──────────────────────────────── */
+#field-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.field-group-hint {
+  font-size: 10px;
+  color: var(--text-sub);
+  font-style: italic;
+  margin-top: -2px;
+  margin-bottom: 4px;
+}
+
+.field-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 8px;
+}
+
+.field-check-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text);
+  cursor: pointer;
+  padding: 2px 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.field-check-row input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 #conn-status {

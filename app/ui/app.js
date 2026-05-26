@@ -9,10 +9,18 @@ Date:    2026-05-26  10:30
 ├── CAMERA RUSHES 2026-01-20  [3 items]
 │   ├── A001C001 INTERVIEW WIDE       00:04:12:09   Online   MC
 │   │   Created: jsmith 2026-01-20 08:14   |   Modified: jsmith 2026-01-20 08:14
+│   │   Markers (3):
+│   │     01:00:08:14  RED      jsmith: False start — ignore
+│   │     01:00:45:02  GREEN    jsmith: Best answer — use this
+│   │     01:03:21:18  YELLOW   jeditor: Check audio dropout here
+│   │
 │   ├── A001C002 INTERVIEW WIDE       00:02:58:22   Online   MC
 │   │   Created: jsmith 2026-01-20 08:14   |   Modified: jsmith 2026-01-20 14:37
+│   │
 │   └── A002C001 INTERVIEW CU         00:06:01:11   Online   MC
 │       Created: jsmith 2026-01-20 09:45   |   Modified: jeditor 2026-05-24 16:02
+│       Markers (1):
+│         01:02:14:00  CYAN     jeditor: Reaction shot — good cutaway
 │
 ├── RAW AUDIO 2026-01-20  [2 items]
 │   ├── INT LAV TRACK 1               00:12:58:00   Online   MC
@@ -23,6 +31,9 @@ Date:    2026-05-26  10:30
 └── SEQUENCES 2026-01-22  [2 items]
     ├── Assembly Edit v1              00:12:45:00   Online   SEQ
     │   Created: jeditor 2026-01-22 11:03   |   Modified: jeditor 2026-01-22 11:03
+    │   Markers (2):
+    │     00:00:00:00  WHITE    jeditor: Opening approved by director
+    │     00:08:34:12  RED      jeditor: Needs colour grade — skin tones off
     └── Assembly Edit v2              00:11:28:14   Online   SEQ
         Created: jeditor 2026-01-22 11:03   |   Modified: jeditor 2026-05-25 09:51
 `;
@@ -77,9 +88,15 @@ const _MOCK_TREE = {
   ],
 };
 
+const _DEFAULT_FIELDS = [
+  ['System','Duration'], ['System','Media Status'],
+  ['System','Created By'], ['System','Creation Date'],
+  ['System','Modified By'], ['System','Modified Date'],
+];
+
 const _MOCK_API = {
   async get_version()                       { return 'dev'; },
-  async get_config()                        { return { server: 'http://192.168.1.10:80', workgroup: 'AvidWorkgroup', username: 'jsmith', has_password: true, start_path: '', max_depth: 3 }; },
+  async get_config()                        { return { server: 'http://192.168.1.10:80', workgroup: 'AvidWorkgroup', username: 'jsmith', has_password: true, start_path: '', max_depth: 3, default_fields: _DEFAULT_FIELDS }; },
   async get_children(uri)                   { return _MOCK_TREE[uri] || []; },
   async load_project(name)                  { return { text: _MOCK_TEXT.replace('2026002 BRAVO', name), summary: '7 items loaded.' }; },
   async save_to_file()                      { alert('Save not available in preview mode.'); return { ok: false }; },
@@ -91,8 +108,47 @@ const _MOCK_API = {
   async queue_update()                      { return { ok: false, error: 'Mock mode' }; },
 };
 
-// When running in a plain browser pywebview is undefined — wire up mock.
-if (typeof pywebview === 'undefined') {
+// ── Field group definitions (mirrors FIELD_DEFS in Python) ────────────────
+const FIELD_GROUPS = [
+  { label: 'Core', fields: [
+    { key: 'System.Duration',     label: 'Duration' },
+    { key: 'System.Media Status', label: 'Media Status' },
+  ]},
+  { label: 'Dates', fields: [
+    { key: 'System.Created By',    label: 'Created By' },
+    { key: 'System.Creation Date', label: 'Creation Date' },
+    { key: 'System.Modified By',   label: 'Modified By' },
+    { key: 'System.Modified Date', label: 'Modified Date' },
+  ]},
+  { label: 'Timecode', fields: [
+    { key: 'System.Start', label: 'Start TC' },
+    { key: 'System.End',   label: 'End TC' },
+  ]},
+  { label: 'Technical', fields: [
+    { key: 'System.Tracks',           label: 'Tracks' },
+    { key: 'System.Format',           label: 'Format' },
+    { key: 'System.Tape',             label: 'Tape / Reel' },
+    { key: 'System.Original Project', label: 'Original Project' },
+  ]},
+  { label: 'Production', fields: [
+    { key: 'User.Comments',     label: 'Comments' },
+    { key: 'User.Scene',        label: 'Scene' },
+    { key: 'User.Take',         label: 'Take' },
+    { key: 'User.Camera',       label: 'Camera' },
+    { key: 'User.Camroll',      label: 'Camera Roll' },
+    { key: 'System.Shoot Date', label: 'Shoot Date' },
+  ]},
+  { label: 'Markers', hint: 'Adds one request per clip — may slow large projects', fields: [
+    { key: 'Markers.Locators', label: 'Include markers' },
+  ]},
+];
+
+const isBrowserPreview =
+  typeof pywebview === 'undefined' &&
+  (window.location.protocol === 'file:' || new URLSearchParams(window.location.search).has('mock'));
+
+// Plain browser preview only. The desktop app injects pywebview after pywebviewready.
+if (isBrowserPreview) {
   window.pywebview = { api: _MOCK_API };
   setTimeout(init, 0);
 }
@@ -108,6 +164,7 @@ const state = {
   treeExpanded: new Set(), // URIs currently expanded
   maxDepth:     0,          // 0 = unlimited
   startUri:     null,
+  initialized:  false,
 };
 
 // ── DOM ────────────────────────────────────────────────────────────────────
@@ -161,11 +218,15 @@ sidebarCopyright.textContent = `© ${new Date().getFullYear()} Mark Battistella`
 window.addEventListener('pywebviewready', init);
 
 async function init() {
+  if (state.initialized) return;
+  state.initialized = true;
+
   const ver = await pywebview.api.get_version();
   sidebarVersion.textContent = ver !== 'dev' ? `v${ver}` : '';
 
   const cfg = await pywebview.api.get_config();
   if (!cfg.server) {
+    resetShell();
     await populateSheet();
     openModal();
     return;
@@ -177,6 +238,19 @@ async function init() {
 
   await initTree(startUri, maxDepth);
   setTimeout(checkForUpdates, 4000);
+}
+
+function resetShell() {
+  state.folderName = null;
+  state.folderUri = null;
+  state.treeCache = {};
+  state.treeExpanded.clear();
+  state.startUri = null;
+  folderList.innerHTML = '';
+  sidebarStatus.textContent = '';
+  clearOutput();
+  setTitle(null);
+  btnGenerate.disabled = true;
 }
 
 // Status callback — Python pushes progress during long loads
@@ -502,9 +576,58 @@ async function populateSheet() {
   sMaxDepth.value  = cfg.max_depth != null ? String(cfg.max_depth) : '0';
   connStatus.textContent = '';
   connStatus.className   = '';
+  buildFieldGroups(cfg.default_fields || _DEFAULT_FIELDS);
+}
+
+function buildFieldGroups(activeFields) {
+  const activeKeys = new Set((activeFields || []).map(f => Array.isArray(f) ? f.join('.') : f));
+  const container  = el('field-groups');
+  container.innerHTML = '';
+
+  FIELD_GROUPS.forEach(group => {
+    const wrap = document.createElement('div');
+    wrap.className = 'field-group';
+
+    const head = document.createElement('div');
+    head.className = 'field-group-label';
+    head.textContent = group.label;
+    wrap.appendChild(head);
+
+    if (group.hint) {
+      const hint = document.createElement('div');
+      hint.className = 'field-group-hint';
+      hint.textContent = group.hint;
+      wrap.appendChild(hint);
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'field-checks';
+
+    group.fields.forEach(f => {
+      const lbl = document.createElement('label');
+      lbl.className = 'field-check-row';
+
+      const cb = document.createElement('input');
+      cb.type    = 'checkbox';
+      cb.name    = 'field';
+      cb.value   = f.key;
+      cb.checked = activeKeys.has(f.key);
+
+      const span = document.createElement('span');
+      span.textContent = f.label;
+
+      lbl.appendChild(cb);
+      lbl.appendChild(span);
+      grid.appendChild(lbl);
+    });
+
+    wrap.appendChild(grid);
+    container.appendChild(wrap);
+  });
 }
 
 function openModal() {
+  document.body.classList.add('modal-open');
   backdrop.classList.remove('hidden');
   settingsModal.classList.remove('hidden');
   requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -517,6 +640,7 @@ function closeModal() {
   backdrop.classList.remove('visible');
   settingsModal.classList.remove('visible');
   setTimeout(() => {
+    document.body.classList.remove('modal-open');
     backdrop.classList.add('hidden');
     settingsModal.classList.add('hidden');
   }, 220);
@@ -533,9 +657,11 @@ btnTest.addEventListener('click', async () => {
 });
 
 btnSaveSettings.addEventListener('click', async () => {
+  const checkedFields = [...document.querySelectorAll('#field-groups input[type="checkbox"]:checked')]
+    .map(cb => cb.value.split('.'));
   const r = await pywebview.api.save_settings(
     sServer.value, sWorkgroup.value, sUsername.value, sPassword.value,
-    sStartPath.value.trim(), Number(sMaxDepth.value) || 0
+    sStartPath.value.trim(), Number(sMaxDepth.value) || 0, checkedFields
   );
   if (!r.ok) {
     connStatus.textContent = r.error || 'Save failed.';

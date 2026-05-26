@@ -138,7 +138,7 @@ python app\interplay_explorer.py ^
 | `--project` | No | Project name to load (substring match). Omit to list only. |
 | `--fields` | No | Override active output fields as quoted `Group.Name` pairs, e.g. `"System.Duration" "System.Media Status"` |
 
-Server addresses are normalized before connecting:
+Server addresses are normalised before connecting:
 
 - `192.168.0.1` → `http://192.168.0.1:80`
 - `https://192.168.0.1` → `https://192.168.0.1:443`
