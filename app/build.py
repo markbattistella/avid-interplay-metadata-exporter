@@ -6,6 +6,7 @@ macOS  : dist/MCExplorer.app  →  dist/MCExplorer.dmg
 Windows: dist/MCExplorer/     →  dist/MCExplorer-Setup.exe
 """
 
+import os
 import subprocess
 import sys
 import shutil
@@ -23,9 +24,24 @@ HERE   = Path(__file__).parent
 ASSETS = HERE / "assets"
 BUILD  = HERE / "build"
 
-VERSION   = datetime.now().strftime("%Y.%m.%d")
-YEAR      = datetime.now().year
-VER_TUPLE = (datetime.now().year, datetime.now().month, datetime.now().day, 0)
+def _parse_version(v: str):
+    v = v.lstrip("v").strip()
+    parts = v.split(".")
+    if len(parts) == 3 and all(p.isdigit() for p in parts):
+        return v, int(parts[0]), int(parts[1]), int(parts[2])
+    return None, None, None, None
+
+_env_tag = os.environ.get("RELEASE_VERSION", "")
+_tag_ver, _tag_y, _tag_m, _tag_d = _parse_version(_env_tag)
+
+if _tag_ver:
+    VERSION   = _tag_ver
+    YEAR      = _tag_y
+    VER_TUPLE = (_tag_y, _tag_m, _tag_d, 0)
+else:
+    VERSION   = datetime.now().strftime("%Y.%m.%d")
+    YEAR      = datetime.now().year
+    VER_TUPLE = (datetime.now().year, datetime.now().month, datetime.now().day, 0)
 
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
