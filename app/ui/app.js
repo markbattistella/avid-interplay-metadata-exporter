@@ -6,16 +6,25 @@ PROJECT: 2026002 BRAVO
 Date:    2026-05-26  10:30
 ────────────────────────────────────────────────────────────────────────
 
-├── RAW AUDIO RECORDINGS 2026-01-22  [2 items]
-│   ├── Interview A                   00:07:39:18   Online   MC
-│   │   Created: jsmith 2026-01-22   |   Modified: jsmith 2026-05-25
-│   └── Interview B                   00:03:12:04   Online   MC
-│       Created: jsmith 2026-01-22   |   Modified: jsmith 2026-05-25
+├── CAMERA RUSHES 2026-01-20  [3 items]
+│   ├── A001C001 INTERVIEW WIDE       00:04:12:09   Online   MC
+│   │   Created: jsmith 2026-01-20 08:14   |   Modified: jsmith 2026-01-20 08:14
+│   ├── A001C002 INTERVIEW WIDE       00:02:58:22   Online   MC
+│   │   Created: jsmith 2026-01-20 08:14   |   Modified: jsmith 2026-01-20 14:37
+│   └── A002C001 INTERVIEW CU         00:06:01:11   Online   MC
+│       Created: jsmith 2026-01-20 09:45   |   Modified: jeditor 2026-05-24 16:02
 │
+├── RAW AUDIO 2026-01-20  [2 items]
+│   ├── INT LAV TRACK 1               00:12:58:00   Online   MC
+│   │   Created: jsmith 2026-01-20 08:14   |   Modified: jsmith 2026-01-20 08:14
+│   └── INT LAV TRACK 2               00:12:58:00   Online   MC
+│       Created: jsmith 2026-01-20 08:14   |   Modified: jsmith 2026-01-20 08:14
 │
-└── SEQUENCES 2026-01-22  [1 items]
-    └── Assembly Edit                 00:12:45:00   Online   SEQ
-        Created: jsmith 2026-01-22   |   Modified: jeditor 2026-05-24
+└── SEQUENCES 2026-01-22  [2 items]
+    ├── Assembly Edit v1              00:12:45:00   Online   SEQ
+    │   Created: jeditor 2026-01-22 11:03   |   Modified: jeditor 2026-01-22 11:03
+    └── Assembly Edit v2              00:11:28:14   Online   SEQ
+        Created: jeditor 2026-01-22 11:03   |   Modified: jeditor 2026-05-25 09:51
 `;
 
 const _MOCK_TREE = {
@@ -27,10 +36,44 @@ const _MOCK_TREE = {
     { name: '2026005 ECHO',    uri: 'interplay://AvidWorkgroup/Projects/2026/2026005 ECHO' },
     { name: '2025 Archive',    uri: 'interplay://AvidWorkgroup/Projects/2025' },
   ],
+  // 2026001 ALPHA intentionally absent → leaf node (tests leaf detection)
+  'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO': [
+    { name: 'CAMERA RUSHES',   uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES' },
+    { name: 'RAW AUDIO',       uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/RAW AUDIO' },
+    { name: 'SEQUENCES',       uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/SEQUENCES' },
+  ],
+  'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES': [
+    { name: 'DAY 01',          uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES/DAY 01' },
+    { name: 'DAY 02',          uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES/DAY 02' },
+    { name: 'DAY 03',          uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES/DAY 03' },
+  ],
+  // DAY 01 and DAY 03 are leaves; DAY 02 has sub-bins
+  'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES/DAY 02': [
+    { name: 'CAM A',           uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES/DAY 02/CAM A' },
+    { name: 'CAM B',           uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/CAMERA RUSHES/DAY 02/CAM B' },
+  ],
+  'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/RAW AUDIO': [
+    { name: 'DAY 01',          uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/RAW AUDIO/DAY 01' },
+    { name: 'DAY 02',          uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/RAW AUDIO/DAY 02' },
+  ],
+  'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/SEQUENCES': [
+    { name: 'ASSEMBLY',        uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/SEQUENCES/ASSEMBLY' },
+    { name: 'FINE CUT',        uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/SEQUENCES/FINE CUT' },
+    { name: 'DELIVERY',        uri: 'interplay://AvidWorkgroup/Projects/2026/2026002 BRAVO/SEQUENCES/DELIVERY' },
+  ],
+  'interplay://AvidWorkgroup/Projects/2026/2026003 CHARLIE': [
+    { name: 'CAMERA RUSHES',   uri: 'interplay://AvidWorkgroup/Projects/2026/2026003 CHARLIE/CAMERA RUSHES' },
+    { name: 'SEQUENCES',       uri: 'interplay://AvidWorkgroup/Projects/2026/2026003 CHARLIE/SEQUENCES' },
+  ],
+  // CHARLIE bins are leaves (no further children)
   'interplay://AvidWorkgroup/Projects/2025': [
     { name: '2025001 ALPHA',   uri: 'interplay://AvidWorkgroup/Projects/2025/2025001 ALPHA' },
     { name: '2025002 BRAVO',   uri: 'interplay://AvidWorkgroup/Projects/2025/2025002 BRAVO' },
     { name: '2025003 CHARLIE', uri: 'interplay://AvidWorkgroup/Projects/2025/2025003 CHARLIE' },
+  ],
+  'interplay://AvidWorkgroup/Projects/2025/2025002 BRAVO': [
+    { name: 'CAMERA RUSHES',   uri: 'interplay://AvidWorkgroup/Projects/2025/2025002 BRAVO/CAMERA RUSHES' },
+    { name: 'SEQUENCES',       uri: 'interplay://AvidWorkgroup/Projects/2025/2025002 BRAVO/SEQUENCES' },
   ],
 };
 
@@ -39,7 +82,7 @@ const _MOCK_API = {
   async get_config()                        { return { server: '192.168.1.10', workgroup: 'AvidWorkgroup', username: 'jsmith', start_path: '', max_depth: 3 }; },
   async get_password()                      { return '••••••••'; },
   async get_children(uri)                   { return _MOCK_TREE[uri] || []; },
-  async load_project(name)                  { return { text: _MOCK_TEXT.replace('2026002 BRAVO', name), summary: '3 items loaded.' }; },
+  async load_project(name)                  { return { text: _MOCK_TEXT.replace('2026002 BRAVO', name), summary: '7 items loaded.' }; },
   async save_to_file()                      { alert('Save not available in preview mode.'); return { ok: false }; },
   async open_email()                        { return { ok: true }; },
   async test_connection()                   { return { ok: true, message: 'Connected successfully. (mock)' }; },

@@ -45,8 +45,7 @@
     --text-muted:     #8b949e;
     --text-sub:       #6e7681;
     --accent:         #a78bfa;
-    --accent-hover:   #8b5cf6;
-    --accent-fg:      #1a0840;
+    --accent-hover:   #7c3aed;
     --selected-bg:    #3b1a6e;
     --accent-fg:      #ffffff;
     --btn-bg:         #21262d;
@@ -382,8 +381,8 @@ svg.folder-open { display: none; }
 #btn-generate {
   width: 100%;
   padding: 10px;
-  background: var(--accent);
-  color: var(--accent-fg);
+  background: var(--selected-bg);
+  color: #ffffff;
   border: none;
   border-radius: var(--radius);
   font: inherit;
@@ -558,9 +557,9 @@ svg.folder-open { display: none; }
 .modal-actions button:hover { opacity: 0.8; }
 
 .primary-btn {
-  background: var(--accent) !important;
-  color: var(--accent-fg) !important;
-  border-color: var(--accent) !important;
+  background: var(--selected-bg) !important;
+  color: #ffffff !important;
+  border-color: var(--selected-bg) !important;
 }
 
 /* ── Update banner ───────────────────────────────────────────────────────── */
@@ -597,9 +596,9 @@ svg.folder-open { display: none; }
 }
 #update-banner button:hover { opacity: 0.8; }
 #btn-update-now {
-  background: var(--accent) !important;
-  color: var(--accent-fg) !important;
-  border-color: var(--accent) !important;
+  background: var(--selected-bg) !important;
+  color: #ffffff !important;
+  border-color: var(--selected-bg) !important;
 }
 
 /* ── Scrollbars ──────────────────────────────────────────────────────────── */
