@@ -15,6 +15,10 @@ import platform
 from datetime import datetime
 from pathlib import Path
 
+# Force UTF-8 output on Windows (default console codepage is cp1252)
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 HERE   = Path(__file__).parent
 ASSETS = HERE / "assets"
 BUILD  = HERE / "build"
@@ -271,13 +275,15 @@ print(f"\n  Stamped : _version.py ({VERSION})")
 
 UI_DIR = HERE / "ui"
 
+_sep = ";" if IS_WIN else ":"
+
 args = [
     sys.executable, "-m", "PyInstaller",
     "--onedir",
     "--windowed",
     "--name", "MCExplorer",
-    "--collect-all", "pywebview",
-    "--add-data", f"{UI_DIR}:ui",   # bundle the HTML/CSS/JS frontend
+    "--collect-all", "webview",
+    "--add-data", f"{UI_DIR}{_sep}ui",
     "--noconfirm",
 ]
 
