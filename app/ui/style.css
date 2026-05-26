@@ -309,7 +309,34 @@ svg.folder-open { display: none; }
   gap: 6px;
   flex-shrink: 0;
 }
-#content-tools.invisible { visibility: hidden; pointer-events: none; }
+
+/* ── Fields panel ────────────────────────────────────────────────────────── */
+#fields-panel {
+  position: fixed;
+  top: calc(var(--header-h) + 6px);
+  right: 16px;
+  width: 284px;
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-modal);
+  padding: 14px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - var(--header-h) - 32px);
+  overflow-y: auto;
+}
+#fields-panel.hidden { display: none; }
+
+.fields-panel-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
 
 .tool-btn {
   width: 32px;
@@ -325,7 +352,10 @@ svg.folder-open { display: none; }
   transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 .tool-btn:hover { background: var(--row-hover); border-color: var(--accent); color: var(--accent); }
+.tool-btn:disabled { opacity: 0.35; cursor: default; }
+.tool-btn:disabled:hover { background: var(--btn-bg); border-color: var(--btn-border); color: var(--btn-text); }
 .tool-btn svg { width: 15px; height: 15px; display: block; }
+.tool-btn.active { background: var(--row-active-bg); border-color: var(--accent); color: var(--accent); }
 
 .tool-sep {
   width: 1px;

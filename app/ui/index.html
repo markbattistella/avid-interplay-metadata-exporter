@@ -46,14 +46,14 @@
           <div id="content-title">No folder selected</div>
           <div id="content-subtitle"></div>
         </div>
-        <div id="content-tools" class="invisible">
-          <button class="tool-btn" id="btn-copy"  title="Copy to clipboard">
+        <div id="content-tools">
+          <button class="tool-btn" id="btn-copy"  title="Copy to clipboard" disabled>
             <i data-lucide="copy"></i>
           </button>
-          <button class="tool-btn" id="btn-email" title="Open in email">
+          <button class="tool-btn" id="btn-email" title="Open in email" disabled>
             <i data-lucide="mail"></i>
           </button>
-          <button class="tool-btn" id="btn-save"  title="Save as file">
+          <button class="tool-btn" id="btn-save"  title="Save as file" disabled>
             <i data-lucide="download"></i>
           </button>
           <div class="tool-sep"></div>
@@ -62,6 +62,10 @@
             <input id="font-slider" type="range" min="8" max="18" value="10" step="1">
             <span class="font-lg">A</span>
           </label>
+          <div class="tool-sep"></div>
+          <button class="tool-btn" id="btn-fields" title="Metadata fields">
+            <i data-lucide="sliders-horizontal"></i>
+          </button>
         </div>
       </div>
 
@@ -117,9 +121,6 @@
           <span class="field-hint">0 = unlimited. Typical studio setup: 3 (year › project › bins)</span>
         </label>
 
-        <div class="modal-section-divider">Metadata Fields</div>
-        <div id="field-groups"></div>
-
         <div id="conn-status"></div>
         <div class="modal-actions">
           <button id="btn-test">Test Connection</button>
@@ -127,6 +128,12 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ── Fields panel ── -->
+  <div id="fields-panel" class="hidden">
+    <div class="fields-panel-header">Metadata Fields</div>
+    <div id="field-groups"></div>
   </div>
 
   <!-- ── Update banner ── -->

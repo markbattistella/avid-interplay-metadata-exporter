@@ -807,6 +807,17 @@ class Api:
         except Exception as e:
             return {"error": _friendly_error(e)}
 
+    def save_fields(self, default_fields) -> dict:
+        try:
+            fields = [list(x) for x in
+                      frozenset(tuple(x) for x in default_fields if len(x) == 2)]
+            new_cfg = {**self._cfg, "default_fields": fields}
+            save_config(new_cfg)
+            self._cfg = new_cfg
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
     # ── File / export actions ─────────────────────────────────────────────────
 
     def save_to_file(self, filename: str, text: str) -> dict:

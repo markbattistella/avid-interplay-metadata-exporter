@@ -103,6 +103,7 @@ const _MOCK_API = {
   async open_email()                        { return { ok: true }; },
   async test_connection()                   { return { ok: true, message: 'Connected successfully. (mock)' }; },
   async save_settings()                     { return { ok: true }; },
+  async save_fields()                       { return { ok: true }; },
   async check_updates()                     { return { available: false, current: 'dev' }; },
   async install_update_now()                { return { ok: false, error: 'Mock mode' }; },
   async queue_update()                      { return { ok: false, error: 'Mock mode' }; },
@@ -180,7 +181,6 @@ const sidebarCopyright = el('sidebar-copyright');
 
 const contentTitle     = el('content-title');
 const contentSubtitle  = el('content-subtitle');
-const contentTools     = el('content-tools');
 const btnGenerate      = el('btn-generate');
 const emptyState       = el('empty-state');
 const output           = el('output');
@@ -188,6 +188,8 @@ const fontSlider       = el('font-slider');
 const btnCopy          = el('btn-copy');
 const btnEmail         = el('btn-email');
 const btnSave          = el('btn-save');
+const btnFields        = el('btn-fields');
+const fieldsPanel      = el('fields-panel');
 
 const backdrop         = el('backdrop');
 const settingsModal    = el('settings-modal');
@@ -453,15 +455,17 @@ function flatSearchCache(uri, q) {
 // ── Generate ───────────────────────────────────────────────────────────────
 btnGenerate.addEventListener('click', generateMetadata);
 
+function setOutputToolsEnabled(enabled) {
+  [btnCopy, btnEmail, btnSave].forEach(btn => { btn.disabled = !enabled; });
+}
+
 async function generateMetadata() {
   if (!state.folderName || !state.folderUri || state.generating) return;
 
   state.generating = true;
   btnGenerate.textContent = 'Generating…';
   btnGenerate.disabled    = true;
-  emptyState.style.display = 'none';
-  output.style.display     = 'none';
-  contentTools.classList.add('invisible');
+  setOutputToolsEnabled(false);
   contentSubtitle.textContent = '';
 
   let result;
@@ -476,7 +480,7 @@ async function generateMetadata() {
   }
 
   if (result.error) {
-    emptyState.style.display = 'flex';
+    if (!state.metadataText) emptyState.style.display = 'flex';
     contentSubtitle.textContent = `Error: ${result.error}`;
     return;
   }
@@ -484,7 +488,8 @@ async function generateMetadata() {
   state.metadataText = result.text;
   output.textContent = result.text;
   output.style.display = 'block';
-  contentTools.classList.remove('invisible');
+  emptyState.style.display = 'none';
+  setOutputToolsEnabled(true);
   contentSubtitle.textContent = result.summary || '';
   contentSubtitle._summary = result.summary || '';
 }
@@ -494,7 +499,7 @@ function clearOutput() {
   output.textContent  = '';
   output.style.display = 'none';
   emptyState.style.display = 'flex';
-  contentTools.classList.add('invisible');
+  setOutputToolsEnabled(false);
   contentSubtitle.textContent = '';
   contentSubtitle._summary = '';
   btnGenerate.textContent = 'Generate Metadata';
@@ -576,7 +581,6 @@ async function populateSheet() {
   sMaxDepth.value  = cfg.max_depth != null ? String(cfg.max_depth) : '0';
   connStatus.textContent = '';
   connStatus.className   = '';
-  buildFieldGroups(cfg.default_fields || _DEFAULT_FIELDS);
 }
 
 function buildFieldGroups(activeFields) {
@@ -657,11 +661,9 @@ btnTest.addEventListener('click', async () => {
 });
 
 btnSaveSettings.addEventListener('click', async () => {
-  const checkedFields = [...document.querySelectorAll('#field-groups input[type="checkbox"]:checked')]
-    .map(cb => cb.value.split('.'));
   const r = await pywebview.api.save_settings(
     sServer.value, sWorkgroup.value, sUsername.value, sPassword.value,
-    sStartPath.value.trim(), Number(sMaxDepth.value) || 0, checkedFields
+    sStartPath.value.trim(), Number(sMaxDepth.value) || 0
   );
   if (!r.ok) {
     connStatus.textContent = r.error || 'Save failed.';
@@ -679,6 +681,47 @@ btnSaveSettings.addEventListener('click', async () => {
   clearOutput();
   setTitle(null);
   await initTree(startUri, maxDepth);
+});
+
+// ── Fields panel ──────────────────────────────────────────────────────────
+btnFields.addEventListener('click', async e => {
+  e.stopPropagation();
+  if (fieldsPanel.classList.contains('hidden')) {
+    await openFieldsPanel();
+  } else {
+    closeFieldsPanel();
+  }
+});
+
+async function openFieldsPanel() {
+  const cfg = await pywebview.api.get_config();
+  buildFieldGroups(cfg.default_fields || _DEFAULT_FIELDS);
+  fieldsPanel.querySelectorAll('input[name="field"]').forEach(cb => {
+    cb.addEventListener('change', saveFieldsFromPanel);
+  });
+  fieldsPanel.classList.remove('hidden');
+  btnFields.classList.add('active');
+}
+
+function closeFieldsPanel() {
+  fieldsPanel.classList.add('hidden');
+  btnFields.classList.remove('active');
+}
+
+async function saveFieldsFromPanel() {
+  const checked = [...fieldsPanel.querySelectorAll('input[name="field"]:checked')];
+  const fields  = checked.map(cb => {
+    const dot = cb.value.indexOf('.');
+    return [cb.value.slice(0, dot), cb.value.slice(dot + 1)];
+  });
+  await pywebview.api.save_fields(fields);
+}
+
+document.addEventListener('click', e => {
+  if (fieldsPanel.classList.contains('hidden')) return;
+  if (!fieldsPanel.contains(e.target) && !btnFields.contains(e.target)) {
+    closeFieldsPanel();
+  }
 });
 
 // ── Updates ────────────────────────────────────────────────────────────────
@@ -767,9 +810,11 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // Escape → close modal, clear filter, or blur filter
+  // Escape → close fields panel, close modal, clear filter, or blur filter
   if (e.key === 'Escape') {
-    if (!settingsModal.classList.contains('hidden')) {
+    if (!fieldsPanel.classList.contains('hidden')) {
+      closeFieldsPanel();
+    } else if (!settingsModal.classList.contains('hidden')) {
       closeModal();
     } else if (filterInput.value) {
       filterInput.value = '';
