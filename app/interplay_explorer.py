@@ -165,12 +165,13 @@ def fmt_date(iso: str) -> str:
         return ""
     try:
         dt = datetime.strptime(iso[:19], "%Y-%m-%dT%H:%M:%S")
+        return dt.strftime("%Y-%m-%d %H:%M")
     except Exception:
         try:
             dt = datetime.strptime(iso[:10], "%Y-%m-%d")
+            return dt.strftime("%Y-%m-%d")
         except Exception:
             return iso
-    return dt.strftime("%Y-%m-%d")
 
 # ---------------------------------------------------------------------------
 # Interplay SOAP client
