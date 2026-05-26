@@ -14,6 +14,7 @@ import tempfile
 import webbrowser
 import urllib.parse
 import atexit
+import hashlib
 from pathlib import Path
 from datetime import datetime
 
@@ -93,6 +94,8 @@ IS_MAC = sys.platform == "darwin"
 
 GITHUB_OWNER = "markbattistella"
 GITHUB_REPO  = "avid-interplay-metadata-exporter"
+DEFAULT_PROJECT_LOAD_DEPTH = 4
+MAILTO_MAX_URL_LENGTH = 8000
 
 _HERE   = Path(__file__).parent
 _ASSETS = _HERE / "assets"
@@ -177,13 +180,44 @@ def fmt_date(iso: str) -> str:
 # Interplay SOAP client
 # ---------------------------------------------------------------------------
 
+def normalize_server_url(server: str) -> str:
+    server = server.strip()
+    if "://" not in server:
+        server = f"http://{server}"
+
+    parsed = urllib.parse.urlsplit(server)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError("Server must use http:// or https://.")
+    if not parsed.hostname:
+        raise ValueError("Server address is missing a host.")
+    if parsed.username or parsed.password:
+        raise ValueError("Enter credentials in the username and password fields.")
+    if parsed.query or parsed.fragment:
+        raise ValueError("Server address cannot include a query string or fragment.")
+
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("Server port must be a number.") from exc
+
+    if port is None:
+        port = 443 if parsed.scheme == "https" else 80
+
+    host = parsed.hostname
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+
+    base_path = parsed.path.rstrip("/")
+    return urllib.parse.urlunsplit(
+        (parsed.scheme, f"{host}:{port}", base_path, "", "")
+    )
+
 class InterplayClient:
     def __init__(self, server: str, username: str, password: str):
         self.username = username
         self.password = password
-        if not server.startswith(("http://", "https://")):
-            server = f"http://{server}"
-        self.assets_url = server.rstrip("/") + "/services/Assets"
+        server = normalize_server_url(server)
+        self.assets_url = server + "/services/Assets"
 
     def _creds(self) -> str:
         u = html_lib.escape(self.username)
@@ -263,8 +297,9 @@ def _uri_variants(uri: str):
     yield uri
     yield (uri.rstrip("/") if uri.endswith("/") else uri + "/")
 
-def _collect_items(client, uri: str, acc: list, depth: int):
-    if depth > 4:
+def _collect_items(client, uri: str, acc: list, depth: int,
+                   max_depth: int = DEFAULT_PROJECT_LOAD_DEPTH):
+    if max_depth and depth > max_depth:
         return
     sub_folders = items = None
     for try_uri in _uri_variants(uri):
@@ -281,10 +316,11 @@ def _collect_items(client, uri: str, acc: list, depth: int):
         raise RuntimeError(f"Path not found: {uri}")
     acc.extend(items or [])
     for folder in sub_folders:
-        _collect_items(client, folder["uri"], acc, depth + 1)
+        _collect_items(client, folder["uri"], acc, depth + 1, max_depth)
 
 def load_project_data(client: InterplayClient, uri: str,
-                      status_fn=None) -> list[dict]:
+                      status_fn=None,
+                      max_depth: int = DEFAULT_PROJECT_LOAD_DEPTH) -> list[dict]:
     tried: list[str] = []
     folders = loose = None
 
@@ -314,7 +350,7 @@ def load_project_data(client: InterplayClient, uri: str,
             status_fn(f"Loading: {folder['name']}…")
         try:
             items: list[dict] = []
-            _collect_items(client, folder["uri"], items, depth=0)
+            _collect_items(client, folder["uri"], items, depth=0, max_depth=max_depth)
             sections.append({"name": folder["name"], "items": items})
         except Exception as e:
             sections.append({"name": folder["name"], "items": [], "error": str(e)})
@@ -454,6 +490,7 @@ def _friendly_error(exc: Exception) -> str:
 class Updater:
     def __init__(self):
         self._pending: Path | None = None
+        self._available: dict | None = None
 
     @property
     def pending_path(self) -> Path | None:
@@ -467,11 +504,8 @@ class Updater:
         if __version__ == "dev":
             return {"available": False, "current": __version__}
         try:
-            cfg   = load_config()
-            owner = cfg.get("github_owner", GITHUB_OWNER)
-            repo  = cfg.get("github_repo",  GITHUB_REPO)
             resp  = requests.get(
-                f"https://api.github.com/repos/{owner}/{repo}/releases/latest",
+                f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest",
                 headers={"Accept": "application/vnd.github+json"},
                 timeout=10)
             resp.raise_for_status()
@@ -479,12 +513,17 @@ class Updater:
             tag    = data.get("tag_name", "").lstrip("v")
             assets = data.get("assets", [])
             if self._newer_than_current(tag):
-                url = self._asset_url(assets)
+                asset = self._asset(assets)
+                url = asset.get("browser_download_url", "") if asset else ""
                 if url:
-                    return {"available": True, "tag": tag, "url": url,
-                            "current": __version__}
+                    digest = asset.get("digest", "")
+                    sha256 = digest.removeprefix("sha256:") if digest.startswith("sha256:") else ""
+                    self._validate_download_url(url)
+                    self._available = {"tag": tag, "url": url, "sha256": sha256}
+                    return {"available": True, "tag": tag, "current": __version__}
         except Exception:
             pass
+        self._available = None
         return {"available": False, "current": __version__}
 
     @staticmethod
@@ -497,24 +536,47 @@ class Updater:
             return False
 
     @staticmethod
-    def _asset_url(assets: list) -> str:
+    def _asset(assets: list) -> dict | None:
         want = "MCExplorer-Setup.exe" if IS_WIN else "MCExplorer.dmg"
         for a in assets:
             if a.get("name") == want:
-                return a.get("browser_download_url", "")
-        return ""
+                return a
+        return None
 
-    def download(self, url: str) -> Path:
+    @staticmethod
+    def _validate_download_url(url: str):
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme != "https" or parsed.netloc.lower() != "github.com":
+            raise RuntimeError("Update download URL is not a trusted GitHub release URL.")
+        expected_prefix = f"/{GITHUB_OWNER}/{GITHUB_REPO}/releases/download/".lower()
+        if not parsed.path.lower().startswith(expected_prefix):
+            raise RuntimeError("Update download URL does not match this app's release repo.")
+
+    def download_available(self) -> Path:
+        if not self._available:
+            raise RuntimeError("No checked update is available.")
+        return self.download(self._available["url"], self._available.get("sha256") or "")
+
+    def download(self, url: str, expected_sha256: str = "") -> Path:
+        self._validate_download_url(url)
         suffix = ".exe" if IS_WIN else ".dmg"
         fd, tmp_str = tempfile.mkstemp(suffix=suffix)
         os.close(fd)
         tmp = Path(tmp_str)
         resp = requests.get(url, stream=True, timeout=120)
         resp.raise_for_status()
+        digest = hashlib.sha256()
         with open(tmp, "wb") as f:
             for chunk in resp.iter_content(chunk_size=65536):
                 if chunk:
                     f.write(chunk)
+                    digest.update(chunk)
+        if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
+            try:
+                tmp.unlink()
+            except Exception:
+                pass
+            raise RuntimeError("Downloaded update did not match the release checksum.")
         return tmp
 
     def launch_installer(self, path: Path):
@@ -578,16 +640,15 @@ class Api:
         return __version__
 
     def get_config(self) -> dict:
+        username = self._cfg.get("username", "")
         return {
             "server":     self._cfg.get("server", ""),
             "workgroup":  self._cfg.get("workgroup", "AvidWorkgroup"),
-            "username":   self._cfg.get("username", ""),
+            "username":   username,
+            "has_password": bool(load_password(username)) if username else False,
             "start_path": self._cfg.get("start_path", ""),
             "max_depth":  self._cfg.get("max_depth", 0),
         }
-
-    def get_password(self, username: str) -> str:
-        return load_password(username)
 
     def get_root_uri(self) -> str:
         wg = self._cfg.get("workgroup", "AvidWorkgroup")
@@ -602,13 +663,23 @@ class Api:
         start_path = start_path.strip()
         if not server or not username:
             return {"ok": False, "error": "Server and username are required."}
+        try:
+            max_depth = max(0, min(20, int(max_depth)))
+        except Exception:
+            max_depth = 0
+        try:
+            server = normalize_server_url(server)
+        except ValueError as e:
+            return {"ok": False, "error": str(e)}
+        password = password or load_password(username)
+        client = InterplayClient(server, username, password)
         new_cfg = {**self._cfg, "server": server, "workgroup": workgroup,
                    "username": username, "start_path": start_path,
-                   "max_depth": int(max_depth)}
+                   "max_depth": max_depth}
         save_config(new_cfg)
         save_password(username, password)
         self._cfg    = new_cfg
-        self._client = InterplayClient(server, username, password)
+        self._client = client
         return {"ok": True}
 
     # ── Connection / browsing ─────────────────────────────────────────────────
@@ -616,7 +687,9 @@ class Api:
     def test_connection(self, server: str, workgroup: str,
                         username: str, password: str) -> dict:
         try:
-            client = InterplayClient(server.strip(), username.strip(), password)
+            username = username.strip()
+            password = password or load_password(username)
+            client = InterplayClient(server.strip(), username, password)
             wg = workgroup.strip() or "AvidWorkgroup"
             client.get_children(f"interplay://{wg}/",
                                 folders=True, files=False, mobs=False)
@@ -672,7 +745,10 @@ class Api:
     def open_email(self, project_name: str, text: str) -> dict:
         subject = urllib.parse.quote(f"Interplay Project: {project_name}")
         body    = urllib.parse.quote(text)
-        webbrowser.open(f"mailto:?subject={subject}&body={body}")
+        url = f"mailto:?subject={subject}&body={body}"
+        if len(url) > MAILTO_MAX_URL_LENGTH:
+            return {"ok": False, "error": "Email draft is too large. Use Copy or Save instead."}
+        webbrowser.open(url)
         return {"ok": True}
 
     # ── Updates ───────────────────────────────────────────────────────────────
@@ -680,9 +756,9 @@ class Api:
     def check_updates(self) -> dict:
         return self._updater.check_for_update()
 
-    def install_update_now(self, url: str) -> dict:
+    def install_update_now(self) -> dict:
         try:
-            path = self._updater.download(url)
+            path = self._updater.download_available()
             self._updater.launch_installer(path)
             if self._window:
                 import threading
@@ -694,9 +770,9 @@ class Api:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def queue_update(self, url: str) -> dict:
+    def queue_update(self) -> dict:
         try:
-            path = self._updater.download(url)
+            path = self._updater.download_available()
             self._updater.set_pending(path)
             return {"ok": True}
         except Exception as e:
@@ -767,6 +843,9 @@ def _cli():
     except Exception as e:
         print(f"ERROR loading project: {e}", file=sys.stderr)
         sys.exit(1)
+
+    if args.debug:
+        print(json.dumps(sections, indent=2), file=sys.stderr)
 
     print(format_project(proj["name"], sections, active))
 

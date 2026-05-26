@@ -90,7 +90,9 @@
       </div>
       <div class="modal-body">
         <label>Server (IP or hostname)
-          <input id="s-server" type="text" autocomplete="off">
+          <input id="s-server" type="text" autocomplete="off"
+                 placeholder="192.168.0.1 or https://192.168.0.1:443">
+          <span class="field-hint">Bare hosts use http:// on port 80. Explicit schemes and ports are preserved.</span>
         </label>
         <label>Workgroup name
           <input id="s-workgroup" type="text" autocomplete="off" placeholder="AvidWorkgroup">
@@ -100,6 +102,7 @@
         </label>
         <label>Password
           <input id="s-password" type="password">
+          <span id="password-hint" class="field-hint"></span>
         </label>
 
         <div class="modal-section-divider">Browse Settings</div>

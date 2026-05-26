@@ -79,8 +79,7 @@ const _MOCK_TREE = {
 
 const _MOCK_API = {
   async get_version()                       { return 'dev'; },
-  async get_config()                        { return { server: '192.168.1.10', workgroup: 'AvidWorkgroup', username: 'jsmith', start_path: '', max_depth: 3 }; },
-  async get_password()                      { return '••••••••'; },
+  async get_config()                        { return { server: 'http://192.168.1.10:80', workgroup: 'AvidWorkgroup', username: 'jsmith', has_password: true, start_path: '', max_depth: 3 }; },
   async get_children(uri)                   { return _MOCK_TREE[uri] || []; },
   async load_project(name)                  { return { text: _MOCK_TEXT.replace('2026002 BRAVO', name), summary: '7 items loaded.' }; },
   async save_to_file()                      { alert('Save not available in preview mode.'); return { ok: false }; },
@@ -105,7 +104,6 @@ const state = {
   metadataText: null,
   generating:   false,
   filterTimer:  null,
-  updateUrl:    null,
   treeCache:    {},         // uri -> [{name, uri}]
   treeExpanded: new Set(), // URIs currently expanded
   maxDepth:     0,          // 0 = unlimited
@@ -142,6 +140,7 @@ const sServer          = el('s-server');
 const sWorkgroup       = el('s-workgroup');
 const sUsername        = el('s-username');
 const sPassword        = el('s-password');
+const passwordHint     = el('password-hint');
 const sStartPath       = el('s-start-path');
 const sMaxDepth        = el('s-max-depth');
 const connStatus       = el('conn-status');
@@ -244,7 +243,7 @@ function createTreeNode(item, depth) {
   li.appendChild(childUl);
 
   // Restore expanded state after filter clear / settings change
-  if (state.treeExpanded.has(item.uri)) {
+  if (state.treeExpanded.has(item.uri) && canExpandDepth(depth)) {
     li.classList.add('expanded');
     const cached = state.treeCache[item.uri];
     if (cached && cached.length > 0) renderTreeItems(childUl, cached, depth + 1);
@@ -253,7 +252,7 @@ function createTreeNode(item, depth) {
   // Single click: select + schedule auto-expand (timer lets dblclick cancel it)
   row.addEventListener('click', () => {
     selectTreeNode(item, row);
-    if (!li.classList.contains('expanded')) {
+    if (!li.classList.contains('expanded') && canExpandDepth(depth)) {
       clearTimeout(row._expandTimer);
       row._expandTimer = setTimeout(() => expandNode(item, li, childUl, depth), 250);
     }
@@ -275,7 +274,15 @@ function collapseNode(li, childUl, item) {
   childUl.innerHTML = '';
 }
 
+function canExpandDepth(depth) {
+  return state.maxDepth === 0 || depth + 1 < state.maxDepth;
+}
+
 async function expandNode(item, li, childUl, depth) {
+  if (!canExpandDepth(depth)) {
+    sidebarStatus.textContent = `Depth limit: ${state.maxDepth}`;
+    return;
+  }
   if (!state.treeCache[item.uri]) {
     sidebarStatus.textContent = 'Loading…';
     const items = await pywebview.api.get_children(item.uri);
@@ -383,11 +390,16 @@ async function generateMetadata() {
   contentTools.classList.add('invisible');
   contentSubtitle.textContent = '';
 
-  const result = await pywebview.api.load_project(state.folderName, state.folderUri);
-
-  state.generating = false;
-  btnGenerate.textContent = 'Generate Metadata';
-  btnGenerate.disabled    = false;
+  let result;
+  try {
+    result = await pywebview.api.load_project(state.folderName, state.folderUri);
+  } catch (err) {
+    result = { error: err?.message || String(err) };
+  } finally {
+    state.generating = false;
+    btnGenerate.textContent = 'Generate Metadata';
+    btnGenerate.disabled    = !state.folderUri;
+  }
 
   if (result.error) {
     emptyState.style.display = 'flex';
@@ -400,6 +412,7 @@ async function generateMetadata() {
   output.style.display = 'block';
   contentTools.classList.remove('invisible');
   contentSubtitle.textContent = result.summary || '';
+  contentSubtitle._summary = result.summary || '';
 }
 
 function clearOutput() {
@@ -409,6 +422,7 @@ function clearOutput() {
   emptyState.style.display = 'flex';
   contentTools.classList.add('invisible');
   contentSubtitle.textContent = '';
+  contentSubtitle._summary = '';
   btnGenerate.textContent = 'Generate Metadata';
 }
 
@@ -427,20 +441,34 @@ fontSlider.addEventListener('input', () => {
 // ── Action buttons ─────────────────────────────────────────────────────────
 btnCopy.addEventListener('click', async () => {
   if (!state.metadataText) return;
-  await navigator.clipboard.writeText(state.metadataText);
-  flash('Copied to clipboard.');
+  try {
+    await navigator.clipboard.writeText(state.metadataText);
+    flash('Copied to clipboard.');
+  } catch (err) {
+    flash(`Copy failed: ${err?.message || err}`);
+  }
 });
 
 btnEmail.addEventListener('click', async () => {
   if (!state.metadataText) return;
-  await pywebview.api.open_email(state.folderName, state.metadataText);
+  const r = await pywebview.api.open_email(state.folderName, state.metadataText);
+  if (!r.ok) flash(r.error || 'Email failed.');
 });
 
 btnSave.addEventListener('click', async () => {
   if (!state.metadataText) return;
-  const r = await pywebview.api.save_to_file(`${state.folderName}.txt`, state.metadataText);
-  if (r.ok) flash(`Saved → ${r.path}`);
+  const r = await pywebview.api.save_to_file(defaultFilename(state.folderName), state.metadataText);
+  if (r.ok) {
+    flash(`Saved: ${r.path}`);
+  } else if (r.error) {
+    flash(`Save failed: ${r.error}`);
+  }
 });
+
+function defaultFilename(name) {
+  const safe = String(name || 'metadata').replace(/[\\/:*?"<>|]/g, '_').trim();
+  return `${safe || 'metadata'}.txt`;
+}
 
 function flash(msg, ms = 3500) {
   contentSubtitle.textContent = msg;
@@ -465,9 +493,11 @@ async function populateSheet() {
   sServer.value    = cfg.server    || '';
   sWorkgroup.value = cfg.workgroup || 'AvidWorkgroup';
   sUsername.value  = cfg.username  || '';
-  sPassword.value  = cfg.username
-    ? await pywebview.api.get_password(cfg.username)
-    : '';
+  sPassword.value = '';
+  sPassword.placeholder = cfg.has_password ? 'Saved password' : '';
+  passwordHint.textContent = cfg.has_password
+    ? 'Leave blank to keep the saved password.'
+    : 'Enter a password to save it in the system credential store.';
   sStartPath.value = cfg.start_path || '';
   sMaxDepth.value  = cfg.max_depth != null ? String(cfg.max_depth) : '0';
   connStatus.textContent = '';
@@ -530,14 +560,13 @@ async function checkForUpdates() {
   const r = await pywebview.api.check_updates();
   if (!r.available) return;
   updateMsg.textContent = `v${r.tag} available (you have v${r.current}).`;
-  state.updateUrl = r.url;
   updateBanner.classList.remove('hidden');
 }
 
 btnUpdateNow.addEventListener('click', async () => {
   btnUpdateNow.disabled = btnUpdateQuit.disabled = true;
   updateMsg.textContent = 'Downloading…';
-  const r = await pywebview.api.install_update_now(state.updateUrl);
+  const r = await pywebview.api.install_update_now();
   if (!r.ok) {
     updateMsg.textContent = `Download failed: ${r.error}`;
     btnUpdateNow.disabled = btnUpdateQuit.disabled = false;
@@ -547,7 +576,7 @@ btnUpdateNow.addEventListener('click', async () => {
 btnUpdateQuit.addEventListener('click', async () => {
   btnUpdateNow.disabled = btnUpdateQuit.disabled = true;
   updateMsg.textContent = 'Downloading…';
-  const r = await pywebview.api.queue_update(state.updateUrl);
+  const r = await pywebview.api.queue_update();
   updateMsg.textContent = r.ok ? 'Will install on quit.' : `Failed: ${r.error}`;
 });
 

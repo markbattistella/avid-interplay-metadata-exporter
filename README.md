@@ -22,11 +22,10 @@ A cross-platform desktop app (and CLI tool) for browsing an Avid MediaCentral wo
 ### macOS
 
 1. Install Python 3.13 — [python.org](https://www.python.org/downloads/) or `brew install python@3.13`
-2. Install Tk support: `brew install python-tk@3.13`
-3. Install dependencies:
+2. Install dependencies:
 
    ```bash
-   pip install requests keyring customtkinter
+   python3.13 -m pip install -r app/requirements.txt
    ```
 
 ### Windows
@@ -36,7 +35,7 @@ A cross-platform desktop app (and CLI tool) for browsing an Avid MediaCentral wo
 2. Open **Command Prompt** or **PowerShell** and install dependencies:
 
    ```bat
-   pip install requests keyring customtkinter
+   pip install -r app\requirements.txt
    ```
 
 3. Verify Python is available:
@@ -137,6 +136,14 @@ python app\interplay_explorer.py ^
 | `--password` | Yes | Password |
 | `--path` | Yes | Interplay URI to search, e.g. `interplay://WorkgroupName/Projects/2026` |
 | `--project` | No | Project name to load (substring match). Omit to list only. |
+| `--fields` | No | Override active output fields as quoted `Group.Name` pairs, e.g. `"System.Duration" "System.Media Status"` |
+
+Server addresses are normalized before connecting:
+
+- `192.168.0.1` → `http://192.168.0.1:80`
+- `https://192.168.0.1` → `https://192.168.0.1:443`
+- `192.168.0.1:12345` → `http://192.168.0.1:12345`
+- `https://192.168.0.1:12345` → `https://192.168.0.1:12345`
 
 ---
 
@@ -155,7 +162,7 @@ Outputs:
 - `app/dist/MCExplorer.app` — the app bundle
 - `app/dist/MCExplorer.dmg` — distribute this
 
-Requires `brew install python-tk@3.13`.
+Requires Python 3.13 and the dependencies in `app/requirements.txt`.
 
 ### Build on Windows
 
@@ -174,7 +181,7 @@ Outputs:
 
 ## Output fields
 
-The default output includes duration, media status, and created/modified dates. Additional fields can be toggled in the GUI via **Fields…**, or saved as new defaults.
+The default output includes duration, media status, and created/modified dates. Additional fields are available through the CLI `--fields` option or saved defaults in the app configuration.
 
 Available field groups:
 
