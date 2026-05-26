@@ -20,5 +20,8 @@ python build.py
 deactivate
 
 echo ""
-echo "Build complete: dist/MCExplorer"
+echo "Build complete."
+echo "  App : dist/MCExplorer.app"
+echo "  DMG : dist/MCExplorer.dmg"
+echo ""
 echo "Note: .venv/ and build/ can be deleted after packaging."

@@ -12,6 +12,8 @@ import json
 import re
 import sys
 import os
+import subprocess
+import tempfile
 import webbrowser
 import urllib.parse
 from pathlib import Path
@@ -90,6 +92,12 @@ SOAP_NS    = "http://schemas.xmlsoap.org/soap/envelope/"
 TYPES_NS   = "http://avid.com/interplay/ws/assets/types"
 APP_NAME   = "MCExplorer"
 LINE_WIDTH = 72
+
+IS_WIN = sys.platform == "win32"
+IS_MAC = sys.platform == "darwin"
+
+GITHUB_OWNER = "markbattistella"
+GITHUB_REPO  = "avid-interplay-metadata-exporter"
 
 _TYPE_LABEL = {
     "masterclip": "MC ",
@@ -416,6 +424,41 @@ def format_project(project_name: str,
     return "\n".join(lines).rstrip() + "\n"
 
 # ---------------------------------------------------------------------------
+# UI helpers
+# ---------------------------------------------------------------------------
+
+def _friendly_error(exc: Exception) -> str:
+    """Return a short, actionable error string for display in the UI."""
+    msg = str(exc)
+    low = msg.lower()
+    if "10022" in msg or "invalid argument was supplied" in low:
+        return ("Could not connect — Windows Firewall may be blocking the app.\n"
+                "Go to Windows Defender Firewall → Allow an app, find MCExplorer and allow it.")
+    if "10061" in msg or "connection refused" in low:
+        return "Connection refused — is the Avid WS service running on that server?"
+    if "timed out" in low or "timeout" in low:
+        return "Connection timed out — check the server address and network."
+    if "max retries exceeded" in low or "newconnectionerror" in low:
+        return "Could not reach server — check the address and that the server is online."
+    if "401" in msg or "unauthorized" in low:
+        return "Authentication failed — check username and password."
+    if "soap fault" in low or "interplay error" in low:
+        # Already a clean message from our parser
+        return msg
+    # urllib3 wraps the real error inside "Caused by (…)" — extract just that part
+    if "Caused by" in msg:
+        inner = msg.split("Caused by")[-1].strip().strip("()")
+        return inner[:200] + ("…" if len(inner) > 200 else "")
+    return msg[:200] + ("…" if len(msg) > 200 else "")
+
+# Secondary button style — visible in both light and dark mode
+_BTN_SECONDARY = {
+    "fg_color":    ("gray80", "gray30"),
+    "hover_color": ("gray70", "gray20"),
+    "text_color":  ("gray10", "gray90"),
+}
+
+# ---------------------------------------------------------------------------
 # UI — Fields dialog
 # ---------------------------------------------------------------------------
 
@@ -463,7 +506,7 @@ class FieldsDialog(ctk.CTkToplevel):
         btn_row.grid(row=1, column=0, columnspan=col, sticky="ew", pady=(12, 0))
 
         ctk.CTkButton(btn_row, text="Reset to Defaults", width=140,
-                      fg_color="transparent", border_width=1,
+                      **_BTN_SECONDARY,
                       command=self._reset).pack(side="left")
         ctk.CTkButton(btn_row, text="Apply", width=90,
                       command=self._apply).pack(side="right")
@@ -537,7 +580,7 @@ class SettingsDialog(ctk.CTkToplevel):
         btn_row = ctk.CTkFrame(outer, fg_color="transparent")
         btn_row.pack(fill="x")
         ctk.CTkButton(btn_row, text="Test Connection", width=140,
-                      fg_color="transparent", border_width=1,
+                      **_BTN_SECONDARY,
                       command=self._test).pack(side="left")
         ctk.CTkButton(btn_row, text="Save", width=100,
                       command=self._save).pack(side="right")
@@ -558,9 +601,9 @@ class SettingsDialog(ctk.CTkToplevel):
                 self.after(0, lambda: self.lbl_status.configure(
                     text="Connected successfully.", text_color="green"))
             except Exception as e:
-                msg = str(e)
+                msg = _friendly_error(e)
                 self.after(0, lambda m=msg: self.lbl_status.configure(
-                    text=f"Failed: {m}", text_color="red"))
+                    text=m, text_color="red"))
 
         threading.Thread(target=work, daemon=True).start()
 
@@ -620,7 +663,7 @@ class OnboardingView(ctk.CTkFrame):
         self.lbl_status.pack(fill="x", pady=(4, 12))
 
         ctk.CTkButton(inner, text="Test Connection",
-                      fg_color="transparent", border_width=1,
+                      **_BTN_SECONDARY,
                       command=self._test).pack(fill="x", pady=(0, 8))
         ctk.CTkButton(inner, text="Get Started",
                       command=self._save).pack(fill="x")
@@ -641,9 +684,9 @@ class OnboardingView(ctk.CTkFrame):
                 self.after(0, lambda: self.lbl_status.configure(
                     text="Connected successfully.", text_color="green"))
             except Exception as e:
-                msg = str(e)
+                msg = _friendly_error(e)
                 self.after(0, lambda m=msg: self.lbl_status.configure(
-                    text=f"Failed: {m}", text_color="red"))
+                    text=m, text_color="red"))
 
         threading.Thread(target=work, daemon=True).start()
 
@@ -840,7 +883,7 @@ class DetailPanel(ctk.CTkFrame):
 
         self._btn_fields = ctk.CTkButton(
             top, text="Fields…", width=90,
-            fg_color="transparent", border_width=1,
+            **_BTN_SECONDARY,
             command=self._open_fields)
         self._btn_export = ctk.CTkButton(
             top, text="Save…", width=80,
@@ -958,6 +1001,222 @@ class DetailPanel(ctk.CTkFrame):
         self.set_status("Opening email client…")
 
 # ---------------------------------------------------------------------------
+# Auto-update
+# ---------------------------------------------------------------------------
+
+class Updater:
+    """Check GitHub Releases, download the platform asset, and launch the installer."""
+
+    def __init__(self):
+        self._pending: Path | None = None
+
+    @property
+    def pending_path(self) -> Path | None:
+        return self._pending
+
+    def set_pending(self, path: Path):
+        self._pending = path
+
+    def check_async(self, on_update, on_error=None):
+        """Background check; calls on_update(tag, url) when a newer release exists."""
+        if __version__ == "dev":
+            return
+
+        cfg   = load_config()
+        owner = cfg.get("github_owner", GITHUB_OWNER)
+        repo  = cfg.get("github_repo",  GITHUB_REPO)
+
+        def work():
+            try:
+                resp = requests.get(
+                    f"https://api.github.com/repos/{owner}/{repo}/releases/latest",
+                    headers={"Accept": "application/vnd.github+json"},
+                    timeout=10)
+                resp.raise_for_status()
+                data   = resp.json()
+                tag    = data.get("tag_name", "").lstrip("v")
+                assets = data.get("assets", [])
+                if self._newer_than_current(tag):
+                    url = self._asset_url(assets)
+                    if url:
+                        on_update(tag, url)
+            except Exception as e:
+                if on_error:
+                    on_error(str(e))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    @staticmethod
+    def _newer_than_current(tag: str) -> bool:
+        try:
+            remote = tuple(int(x) for x in tag.split(".")[:3])
+            local  = tuple(int(x) for x in __version__.split(".")[:3])
+            return remote > local
+        except Exception:
+            return False
+
+    @staticmethod
+    def _asset_url(assets: list) -> str:
+        want = "MCExplorer-Setup.exe" if IS_WIN else "MCExplorer.dmg"
+        for a in assets:
+            if a.get("name") == want:
+                return a.get("browser_download_url", "")
+        return ""
+
+    def download(self, url: str, progress_fn=None) -> Path:
+        """Stream url to a temp file; progress_fn(0.0–1.0) called if supplied."""
+        suffix = ".exe" if IS_WIN else ".dmg"
+        fd, tmp_str = tempfile.mkstemp(suffix=suffix)
+        os.close(fd)
+        tmp = Path(tmp_str)
+        resp = requests.get(url, stream=True, timeout=120)
+        resp.raise_for_status()
+        total   = int(resp.headers.get("content-length", 0))
+        written = 0
+        with open(tmp, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=65536):
+                if chunk:
+                    f.write(chunk)
+                    written += len(chunk)
+                    if progress_fn and total:
+                        progress_fn(written / total)
+        return tmp
+
+    def launch_installer(self, path: Path):
+        if IS_WIN:
+            subprocess.Popen([str(path), "/SILENT"])
+        elif IS_MAC:
+            self._mac_install(path)
+
+    @staticmethod
+    def _mac_install(dmg: Path):
+        fd, mount_str = tempfile.mkstemp(suffix="_mount")
+        os.close(fd)
+        os.unlink(mount_str)           # hdiutil needs a non-existent mountpoint dir
+        mount_pt = mount_str
+
+        if getattr(sys, "frozen", False):
+            # Running as .app: sys.executable = .../MCExplorer.app/Contents/MacOS/MCExplorer
+            app_dest    = str(Path(sys.executable).parent.parent.parent)
+            install_dir = str(Path(app_dest).parent)
+        else:
+            app_dest    = "/Applications/MCExplorer.app"
+            install_dir = "/Applications"
+
+        fd2, script_str = tempfile.mkstemp(suffix=".sh")
+        os.close(fd2)
+        script = (
+            "#!/usr/bin/env bash\n"
+            "sleep 1\n"
+            f'hdiutil attach "{dmg}" -nobrowse -mountpoint "{mount_pt}" -quiet || exit 1\n'
+            f'rm -rf "{app_dest}"\n'
+            f'cp -R "{mount_pt}/MCExplorer.app" "{install_dir}/"\n'
+            f'hdiutil detach "{mount_pt}" -quiet\n'
+            f'open "{install_dir}/MCExplorer.app"\n'
+            "rm -- \"$0\"\n"
+        )
+        Path(script_str).write_text(script, encoding="utf-8")
+        Path(script_str).chmod(0o755)
+        subprocess.Popen(["bash", script_str], close_fds=True, start_new_session=True)
+
+
+class UpdateDialog(ctk.CTkToplevel):
+    def __init__(self, parent, updater: Updater, tag: str, url: str):
+        super().__init__(parent)
+        self.title("Update Available")
+        self.resizable(False, False)
+        self._updater = updater
+        self._tag     = tag
+        self._url     = url
+        self._build()
+        self.after(50,  self.lift)
+        self.after(100, self.grab_set)
+
+    def _build(self):
+        frame = ctk.CTkFrame(self, fg_color="transparent")
+        frame.pack(padx=36, pady=28, fill="both", expand=True)
+
+        ctk.CTkLabel(frame, text="Update Available",
+                     font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(0, 8))
+        ctk.CTkLabel(frame,
+                     text=(f"Version {self._tag} is available.\n"
+                           f"You have version {__version__}."),
+                     text_color="gray", justify="center").pack(pady=(0, 20))
+
+        self._lbl_status = ctk.CTkLabel(frame, text="", text_color="gray",
+                                         font=ctk.CTkFont(size=11))
+        self._lbl_status.pack(pady=(0, 16))
+
+        btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        btn_frame.pack(fill="x")
+
+        self._btn_now   = ctk.CTkButton(btn_frame, text="Install Now",
+                                         command=self._install_now)
+        self._btn_quit  = ctk.CTkButton(btn_frame, text="Install on Quit",
+                                         **_BTN_SECONDARY,
+                                         command=self._install_on_quit)
+        self._btn_later = ctk.CTkButton(btn_frame, text="Later",
+                                         **_BTN_SECONDARY,
+                                         command=self.destroy)
+
+        self._btn_now.pack(fill="x", pady=(0, 6))
+        self._btn_quit.pack(fill="x", pady=(0, 6))
+        self._btn_later.pack(fill="x")
+
+    def _set_buttons(self, enabled: bool):
+        state = "normal" if enabled else "disabled"
+        for btn in (self._btn_now, self._btn_quit, self._btn_later):
+            btn.configure(state=state)
+
+    def _install_now(self):
+        self._set_buttons(False)
+        self._lbl_status.configure(text="Downloading…", text_color="gray")
+        url = self._url
+
+        def work():
+            try:
+                def progress(pct):
+                    self.after(0, lambda p=pct: self._lbl_status.configure(
+                        text=f"Downloading… {int(p * 100)}%"))
+                path = self._updater.download(url, progress_fn=progress)
+                self.after(0, lambda p=path: self._do_install_now(p))
+            except Exception as e:
+                msg = str(e)
+                self.after(0, lambda m=msg: self._download_error(m))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _do_install_now(self, path: Path):
+        self._lbl_status.configure(text="Launching installer…", text_color="green")
+        self._updater.launch_installer(path)
+        self.after(1200, lambda: self.winfo_toplevel().quit())
+
+    def _install_on_quit(self):
+        self._set_buttons(False)
+        self._lbl_status.configure(text="Downloading in background…", text_color="gray")
+        url = self._url
+
+        def work():
+            try:
+                path = self._updater.download(url)
+                self._updater.set_pending(path)
+                self.after(0, self._pending_done)
+            except Exception as e:
+                msg = str(e)
+                self.after(0, lambda m=msg: self._download_error(m))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _pending_done(self):
+        self._lbl_status.configure(text="Ready — installer will run on quit.", text_color="green")
+        self.after(2000, self.destroy)
+
+    def _download_error(self, msg: str):
+        self._lbl_status.configure(text=f"Download failed: {msg[:80]}", text_color="red")
+        self._set_buttons(True)
+
+
+# ---------------------------------------------------------------------------
 # UI — Main application window
 # ---------------------------------------------------------------------------
 
@@ -970,8 +1229,11 @@ class App(ctk.CTk):
 
         self._cfg          = load_config()
         self._current_view: ctk.CTkFrame | None = None
+        self._updater      = Updater()
 
         self._platform_setup()
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+        self.after(4000, self._check_for_updates)
 
         if self._cfg.get("server"):
             self._show_main()
@@ -1010,7 +1272,7 @@ class App(ctk.CTk):
 
         # Hook system-level commands so our handlers run instead of defaults
         self.createcommand("tk::mac::ShowAbout", self._show_about)
-        self.createcommand("tk::mac::Quit",      self.quit)
+        self.createcommand("tk::mac::Quit",      self._on_close)
 
     def _show_about(self):
         dlg = ctk.CTkToplevel(self)
@@ -1040,6 +1302,19 @@ class App(ctk.CTk):
 
         dlg.after(50,  dlg.lift)
         dlg.after(100, dlg.grab_set)
+
+    # ── Updates ───────────────────────────────────────────────────────────────
+
+    def _check_for_updates(self):
+        def on_update(tag: str, url: str):
+            self.after(0, lambda: UpdateDialog(self, self._updater, tag, url))
+        self._updater.check_async(on_update)
+
+    def _on_close(self):
+        pending = self._updater.pending_path
+        if pending and pending.exists():
+            self._updater.launch_installer(pending)
+        self.quit()
 
     # ── View switching ────────────────────────────────────────────────────────
 

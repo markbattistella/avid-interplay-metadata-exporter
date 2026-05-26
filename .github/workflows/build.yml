@@ -11,10 +11,10 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact: MCExplorer.exe
+            artifact: MCExplorer-Setup.exe
             label: Windows
           - os: macos-latest
-            artifact: MCExplorer
+            artifact: MCExplorer.dmg
             label: macOS
 
     runs-on: ${{ matrix.os }}
@@ -29,6 +29,10 @@ jobs:
       - name: Install Tk support (macOS only)
         if: runner.os == 'macOS'
         run: brew install python-tk@3.13
+
+      - name: Install Inno Setup (Windows only)
+        if: runner.os == 'Windows'
+        run: choco install innosetup -y
 
       - name: Install dependencies
         working-directory: app

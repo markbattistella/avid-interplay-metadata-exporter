@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """
 Cross-platform build script for MediaCentral Explorer.
-Run from inside the project venv after installing requirements + pyinstaller.
 
-Icons are auto-generated from assets/icon.png if the target file is missing:
-  - assets/icon.icns  (macOS — uses built-in sips + iconutil)
-  - assets/icon.ico   (Windows / any — uses Pillow, auto-installed if absent)
+macOS  : dist/MCExplorer.app  →  dist/MCExplorer.dmg
+Windows: dist/MCExplorer/     →  dist/MCExplorer-Setup.exe
 """
 
 import subprocess
 import sys
 import shutil
 import tempfile
+import plistlib
 import platform
 from datetime import datetime
 from pathlib import Path
 
 HERE   = Path(__file__).parent
 ASSETS = HERE / "assets"
-BUILD  = HERE / "build"   # Windows version info written here
+BUILD  = HERE / "build"
 
 VERSION   = datetime.now().strftime("%Y.%m.%d")
 YEAR      = datetime.now().year
@@ -48,7 +47,6 @@ def _ensure_pillow():
                        check=True, capture_output=True)
 
 def make_ico(src: Path, out: Path):
-    """Convert a PNG to a multi-resolution .ico using Pillow."""
     _ensure_pillow()
     from PIL import Image
     img   = Image.open(src).convert("RGBA")
@@ -60,12 +58,11 @@ def make_ico(src: Path, out: Path):
     print(f"  Created : {out.name}")
 
 def make_icns(src: Path, out: Path):
-    """Convert a PNG to .icns using macOS built-in sips + iconutil."""
     if not IS_MAC:
         print("  .icns generation requires macOS — skipping")
         return
-    tmp      = Path(tempfile.mkdtemp())
-    iconset  = tmp / "icon.iconset"
+    tmp     = Path(tempfile.mkdtemp())
+    iconset = tmp / "icon.iconset"
     iconset.mkdir()
     sizes = [
         (16,   "icon_16x16.png"),
@@ -91,7 +88,6 @@ def make_icns(src: Path, out: Path):
     print(f"  Created : {out.name}")
 
 def _auto_icon(target: Path):
-    """Generate target icon from icon.png if the target is missing."""
     if target.exists():
         print(f"  Icon    : {target.name} (existing)")
         return
@@ -106,7 +102,7 @@ def _auto_icon(target: Path):
         make_ico(png, target)
 
 # ---------------------------------------------------------------------------
-# Windows version info file
+# Windows version info file (for PyInstaller)
 # ---------------------------------------------------------------------------
 
 def _make_win_version(out: Path):
@@ -139,17 +135,147 @@ def _make_win_version(out: Path):
     out.write_text(text, encoding="utf-8")
     print(f"  Generated: {out.name}")
 
+# ---------------------------------------------------------------------------
+# macOS: patch Info.plist inside .app after PyInstaller runs
+# ---------------------------------------------------------------------------
+
+def _patch_info_plist(app_path: Path):
+    plist_path = app_path / "Contents" / "Info.plist"
+    if not plist_path.exists():
+        print(f"  Warning : Info.plist not found at {plist_path}")
+        return
+    with open(plist_path, "rb") as f:
+        data = plistlib.load(f)
+    data.update({
+        "CFBundleName":               "MediaCentral Explorer",
+        "CFBundleDisplayName":        "MediaCentral Explorer",
+        "CFBundleVersion":            VERSION,
+        "CFBundleShortVersionString": VERSION,
+        "NSHumanReadableCopyright":   f"Copyright © 2010-{YEAR} Mark Battistella. markbattistella.com",
+        "NSHighResolutionCapable":    True,
+        "LSMinimumSystemVersion":     "11.0",
+    })
+    with open(plist_path, "wb") as f:
+        plistlib.dump(data, f)
+    print(f"  Patched : Info.plist ({VERSION})")
 
 # ---------------------------------------------------------------------------
-# Assemble PyInstaller command
+# macOS: create DMG
+# ---------------------------------------------------------------------------
+
+def _make_dmg(app_path: Path, out: Path):
+    tmp = Path(tempfile.mkdtemp())
+    try:
+        shutil.copytree(str(app_path), str(tmp / app_path.name))
+        subprocess.run([
+            "hdiutil", "create",
+            "-volname", "MediaCentral Explorer",
+            "-srcfolder", str(tmp),
+            "-ov", "-format", "UDZO",
+            str(out),
+        ], check=True, capture_output=True)
+        print(f"  Created : {out.name}")
+    finally:
+        shutil.rmtree(tmp)
+
+# ---------------------------------------------------------------------------
+# Windows: generate Inno Setup script and run ISCC
+# ---------------------------------------------------------------------------
+
+def _make_inno_script(out: Path) -> Path:
+    major, minor, patch, _ = VER_TUPLE
+    dist_src  = str(HERE / "dist" / "MCExplorer") + ("\\*" if IS_WIN else "/*")
+    dist_out  = str(HERE / "dist")
+    icon_path = str(ASSETS / "icon.ico")
+    has_icon  = (ASSETS / "icon.ico").exists()
+
+    icon_line = f'SetupIconFile={icon_path}\n' if has_icon else ""
+
+    script = (
+        "[Setup]\n"
+        "AppName=MediaCentral Explorer\n"
+        f"AppVersion={VERSION}\n"
+        "AppPublisher=Mark Battistella\n"
+        "AppPublisherURL=https://markbattistella.com\n"
+        "AppSupportURL=https://markbattistella.com\n"
+        f"AppCopyright=Copyright (C) 2010-{YEAR} Mark Battistella\n"
+        "DefaultDirName={autopf}\\MCExplorer\n"
+        "DefaultGroupName=MediaCentral Explorer\n"
+        f"OutputDir={dist_out}\n"
+        "OutputBaseFilename=MCExplorer-Setup\n"
+        f"{icon_line}"
+        "Compression=lzma\n"
+        "SolidCompression=yes\n"
+        "WizardStyle=modern\n"
+        "PrivilegesRequired=admin\n"
+        f"VersionInfoVersion={major}.{minor}.{patch}.0\n"
+        "VersionInfoCompany=Mark Battistella\n"
+        "VersionInfoDescription=MediaCentral Explorer Installer\n"
+        f"VersionInfoCopyright=Copyright (C) 2010-{YEAR} Mark Battistella\n"
+        "\n"
+        "[Languages]\n"
+        'Name: "english"; MessagesFile: "compiler:Default.isl"\n'
+        "\n"
+        "[Tasks]\n"
+        'Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; '
+        'GroupDescription: "{cm:AdditionalIcons}"\n'
+        "\n"
+        "[Files]\n"
+        f'Source: "{dist_src}"; DestDir: "{{app}}"; '
+        "Flags: ignoreversion recursesubdirs createallsubdirs\n"
+        "\n"
+        "[Icons]\n"
+        'Name: "{group}\\MediaCentral Explorer"; Filename: "{app}\\MCExplorer.exe"\n'
+        'Name: "{group}\\{cm:UninstallProgram,MediaCentral Explorer}"; Filename: "{uninstallexe}"\n'
+        'Name: "{commondesktop}\\MediaCentral Explorer"; Filename: "{app}\\MCExplorer.exe"; '
+        'Tasks: desktopicon\n'
+        "\n"
+        "[Run]\n"
+        'Filename: "{app}\\MCExplorer.exe"; '
+        'Description: "{cm:LaunchProgram,MediaCentral Explorer}"; '
+        "Flags: nowait postinstall skipifsilent\n"
+    )
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(script, encoding="utf-8")
+    print(f"  Generated: {out.name}")
+    return out
+
+def _run_inno(iss_path: Path):
+    iscc = shutil.which("ISCC") or shutil.which("iscc")
+    if not iscc:
+        for candidate in [
+            r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+            r"C:\Program Files\Inno Setup 6\ISCC.exe",
+        ]:
+            if Path(candidate).exists():
+                iscc = candidate
+                break
+    if not iscc:
+        print("  Inno Setup not found — skipping installer.")
+        print("  Install it: choco install innosetup  or  https://jrsoftware.org/isinfo.php")
+        return
+    print("  Running ISCC…")
+    subprocess.run([iscc, str(iss_path)], check=True, cwd=HERE)
+    print("  Installer: dist/MCExplorer-Setup.exe")
+
+# ---------------------------------------------------------------------------
+# Stamp version
+# ---------------------------------------------------------------------------
+
+(HERE / "_version.py").write_text(f'__version__ = "{VERSION}"\n', encoding="utf-8")
+print(f"\n  Stamped : _version.py ({VERSION})")
+
+# ---------------------------------------------------------------------------
+# Assemble PyInstaller args
 # ---------------------------------------------------------------------------
 
 args = [
     sys.executable, "-m", "PyInstaller",
-    "--onefile",
+    "--onedir",     # proper installable structure, no temp-dir extraction
     "--windowed",
     "--name", "MCExplorer",
     "--collect-all", "customtkinter",
+    "--noconfirm",
 ]
 
 if IS_WIN:
@@ -171,24 +297,45 @@ else:
 
 print()
 _auto_icon(icon)
-
 if icon.exists():
     args += ["--icon", str(icon)]
 
 args.append(str(HERE / "interplay_explorer.py"))
 
 # ---------------------------------------------------------------------------
-# Stamp version into _version.py so the app can read it at runtime
-# ---------------------------------------------------------------------------
-
-version_stamp = HERE / "_version.py"
-version_stamp.write_text(f'__version__ = "{VERSION}"\n', encoding="utf-8")
-print(f"\n  Stamped : _version.py ({VERSION})")
-
-# ---------------------------------------------------------------------------
-# Run
+# Run PyInstaller
 # ---------------------------------------------------------------------------
 
 print("\nRunning PyInstaller…\n")
 result = subprocess.run(args, cwd=HERE)
-sys.exit(result.returncode)
+if result.returncode != 0:
+    sys.exit(result.returncode)
+
+# ---------------------------------------------------------------------------
+# Post-processing
+# ---------------------------------------------------------------------------
+
+print()
+if IS_MAC:
+    app_path = HERE / "dist" / "MCExplorer.app"
+    if app_path.exists():
+        _patch_info_plist(app_path)
+        _make_dmg(app_path, HERE / "dist" / "MCExplorer.dmg")
+        print("\nDone.")
+        print(f"  App : dist/MCExplorer.app")
+        print(f"  DMG : dist/MCExplorer.dmg  ← distribute this")
+    else:
+        print(f"Warning: {app_path} not found.")
+        sys.exit(1)
+
+elif IS_WIN:
+    dist_dir = HERE / "dist" / "MCExplorer"
+    if dist_dir.exists():
+        iss = _make_inno_script(BUILD / "installer.iss")
+        _run_inno(iss)
+        print("\nDone.")
+        print(f"  Folder   : dist/MCExplorer/")
+        print(f"  Installer: dist/MCExplorer-Setup.exe  ← distribute this")
+    else:
+        print(f"Warning: {dist_dir} not found.")
+        sys.exit(1)

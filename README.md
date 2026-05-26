@@ -148,20 +148,27 @@ Binaries are built automatically via GitHub Actions on every release.
 
 ```bash
 sh app/build_mac.sh
-# Output: app/dist/MCExplorer
 ```
+
+Outputs:
+
+- `app/dist/MCExplorer.app` — the app bundle
+- `app/dist/MCExplorer.dmg` — distribute this
 
 Requires `brew install python-tk@3.13`.
 
 ### Build on Windows
 
+Requires [Inno Setup](https://jrsoftware.org/isinfo.php) (or `choco install innosetup`).
+
 ```bat
 app\build_windows.bat
 ```
 
-Output: `app\dist\MCExplorer.exe`
+Outputs:
 
-> **Note:** Windows may show a SmartScreen prompt on first run. Right-click → Properties → Unblock, or run `Unblock-File -Path MCExplorer.exe` in PowerShell.
+- `app\dist\MCExplorer\` — the app folder
+- `app\dist\MCExplorer-Setup.exe` — distribute this; installs to `Program Files`, creates Start Menu entry
 
 ---
 
