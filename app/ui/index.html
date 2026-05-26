@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Avid MediaCentral Metadata Exporter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="layout">
+
+    <!-- ── Left sidebar ── -->
+    <aside id="sidebar">
+      <div id="sidebar-top">
+        <div id="app-brand">
+          <div class="brand-title">Avid MediaCentral</div>
+          <div class="brand-sub">Metadata Exporter</div>
+        </div>
+        <button id="btn-settings" class="icon-btn" title="Settings">
+          <i data-lucide="settings"></i>
+        </button>
+      </div>
+
+      <div id="filter-wrap">
+        <input id="filter-input" type="text" placeholder="Filter…"
+               autocomplete="off" spellcheck="false">
+      </div>
+
+      <ul id="folder-list"></ul>
+
+      <div id="sidebar-footer">
+        <div class="footer-row">
+          <span id="sidebar-status"></span>
+          <span id="sidebar-version"></span>
+        </div>
+        <div id="sidebar-copyright" class="footer-copyright"></div>
+      </div>
+    </aside>
+
+    <!-- ── Resize handle ── -->
+    <div id="resize-handle"></div>
+
+    <!-- ── Main content ── -->
+    <main id="content">
+      <div id="content-header">
+        <div class="content-title-area">
+          <div id="content-title">No folder selected</div>
+          <div id="content-subtitle"></div>
+        </div>
+        <div id="content-tools" class="invisible">
+          <button class="tool-btn" id="btn-copy"  title="Copy to clipboard">
+            <i data-lucide="copy"></i>
+          </button>
+          <button class="tool-btn" id="btn-email" title="Open in email">
+            <i data-lucide="mail"></i>
+          </button>
+          <button class="tool-btn" id="btn-save"  title="Save as file">
+            <i data-lucide="download"></i>
+          </button>
+          <div class="tool-sep"></div>
+          <label class="font-label" title="Font size">
+            <span class="font-sm">A</span>
+            <input id="font-slider" type="range" min="8" max="18" value="10" step="1">
+            <span class="font-lg">A</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="empty-state">
+        <i data-lucide="folder-open" class="empty-icon"></i>
+        <p>Select a folder in the sidebar,<br>then click <strong>Generate Metadata</strong>.</p>
+      </div>
+
+      <pre id="output"></pre>
+
+      <div id="content-bottom">
+        <button id="btn-generate" disabled>Generate Metadata</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── Settings modal ── -->
+  <div id="backdrop" class="hidden"></div>
+  <div id="settings-modal" class="hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Connection Settings</h3>
+        <button id="btn-modal-close" class="icon-btn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label>Server (IP or hostname)
+          <input id="s-server" type="text" autocomplete="off">
+        </label>
+        <label>Workgroup name
+          <input id="s-workgroup" type="text" autocomplete="off" placeholder="AvidWorkgroup">
+        </label>
+        <label>Username
+          <input id="s-username" type="text" autocomplete="off">
+        </label>
+        <label>Password
+          <input id="s-password" type="password">
+        </label>
+
+        <div class="modal-section-divider">Browse Settings</div>
+
+        <label>Start path
+          <input id="s-start-path" type="text" autocomplete="off"
+                 placeholder="interplay://AvidWorkgroup/Projects">
+          <span class="field-hint">Where to begin browsing. Leave blank for server root.</span>
+        </label>
+        <label>Max browse depth
+          <input id="s-max-depth" type="number" min="0" max="20" value="0">
+          <span class="field-hint">0 = unlimited. Typical studio setup: 3 (year › project › bins)</span>
+        </label>
+
+        <div id="conn-status"></div>
+        <div class="modal-actions">
+          <button id="btn-test">Test Connection</button>
+          <button id="btn-save-settings" class="primary-btn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Update banner ── -->
+  <div id="update-banner" class="hidden">
+    <span id="update-msg"></span>
+    <button id="btn-update-now">Install Now</button>
+    <button id="btn-update-quit">Install on Quit</button>
+    <button id="btn-update-dismiss" class="icon-btn"><i data-lucide="x"></i></button>
+  </div>
+
+  <script src="lucide.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

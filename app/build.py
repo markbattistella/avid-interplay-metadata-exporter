@@ -269,12 +269,15 @@ print(f"\n  Stamped : _version.py ({VERSION})")
 # Assemble PyInstaller args
 # ---------------------------------------------------------------------------
 
+UI_DIR = HERE / "ui"
+
 args = [
     sys.executable, "-m", "PyInstaller",
-    "--onedir",     # proper installable structure, no temp-dir extraction
+    "--onedir",
     "--windowed",
     "--name", "MCExplorer",
-    "--collect-all", "customtkinter",
+    "--collect-all", "pywebview",
+    "--add-data", f"{UI_DIR}:ui",   # bundle the HTML/CSS/JS frontend
     "--noconfirm",
 ]
 
@@ -299,9 +302,6 @@ print()
 _auto_icon(icon)
 if icon.exists():
     args += ["--icon", str(icon)]
-    if IS_WIN:
-        # Copy icon.ico next to the exe so the app can call iconbitmap() at runtime
-        args += ["--add-data", f"{icon}:."]
 
 args.append(str(HERE / "interplay_explorer.py"))
 

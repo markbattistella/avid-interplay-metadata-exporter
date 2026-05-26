@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Avid MediaCentral Explorer"""
+"""Avid MediaCentral Metadata Exporter"""
 
-import customtkinter as ctk
-import tkinter as tk
-from tkinter import filedialog, messagebox
+import webview
 import requests
 import xml.etree.ElementTree as ET
-import threading
 import html as html_lib
 import json
 import re
@@ -16,6 +13,7 @@ import subprocess
 import tempfile
 import webbrowser
 import urllib.parse
+import atexit
 from pathlib import Path
 from datetime import datetime
 
@@ -29,9 +27,6 @@ try:
     from _version import __version__
 except ImportError:
     __version__ = "dev"
-
-ctk.set_appearance_mode("system")
-ctk.set_default_color_theme("blue")
 
 # ---------------------------------------------------------------------------
 # Field definitions
@@ -175,7 +170,7 @@ def fmt_date(iso: str) -> str:
             dt = datetime.strptime(iso[:10], "%Y-%m-%d")
         except Exception:
             return iso
-    return f"{dt.day} {dt.strftime('%b')} {dt.year}"
+    return dt.strftime("%Y-%m-%d")
 
 # ---------------------------------------------------------------------------
 # Interplay SOAP client
@@ -335,7 +330,7 @@ def format_project(project_name: str,
     lines: list[str] = []
 
     lines.append(f"PROJECT: {project_name}")
-    lines.append(f"Date:    {datetime.now().strftime('%d %B %Y  %I:%M %p')}")
+    lines.append(f"Date:    {datetime.now().strftime('%Y-%m-%d  %H:%M')}")
     lines.append("─" * LINE_WIDTH)
     lines.append("")
 
@@ -427,15 +422,14 @@ def format_project(project_name: str,
     return "\n".join(lines).rstrip() + "\n"
 
 # ---------------------------------------------------------------------------
-# UI helpers
+# Error helper
 # ---------------------------------------------------------------------------
 
 def _friendly_error(exc: Exception) -> str:
-    """Return a short, actionable error string for display in the UI."""
     msg = str(exc)
     low = msg.lower()
     if "10022" in msg or "invalid argument was supplied" in low:
-        return ("Could not connect — Windows Firewall may be blocking the app.\n"
+        return ("Could not connect — Windows Firewall may be blocking the app. "
                 "Go to Windows Defender Firewall → Allow an app, find MCExplorer and allow it.")
     if "10061" in msg or "connection refused" in low:
         return "Connection refused — is the Avid WS service running on that server?"
@@ -446,630 +440,17 @@ def _friendly_error(exc: Exception) -> str:
     if "401" in msg or "unauthorized" in low:
         return "Authentication failed — check username and password."
     if "soap fault" in low or "interplay error" in low:
-        # Already a clean message from our parser
         return msg
-    # urllib3 wraps the real error inside "Caused by (…)" — extract just that part
     if "Caused by" in msg:
         inner = msg.split("Caused by")[-1].strip().strip("()")
         return inner[:200] + ("…" if len(inner) > 200 else "")
     return msg[:200] + ("…" if len(msg) > 200 else "")
 
-# Secondary button style — visible in both light and dark mode
-_BTN_SECONDARY = {
-    "fg_color":    ("gray80", "gray30"),
-    "hover_color": ("gray70", "gray20"),
-    "text_color":  ("gray10", "gray90"),
-}
-
-def _nav_section(parent, text: str):
-    """Centered pill-badge section divider used in the left sidebar."""
-    outer = ctk.CTkFrame(parent, fg_color="transparent")
-    outer.pack(fill="x", pady=(12, 4))
-    pill = ctk.CTkFrame(outer, corner_radius=100, fg_color=("gray78", "gray28"))
-    pill.pack(anchor="center")
-    ctk.CTkLabel(pill, text=text, font=ctk.CTkFont(size=10, weight="bold"),
-                 text_color=("gray35", "gray65")).pack(padx=12, pady=3)
-
 # ---------------------------------------------------------------------------
-# UI — Fields dialog
-# ---------------------------------------------------------------------------
-
-class FieldsDialog(ctk.CTkToplevel):
-    def __init__(self, parent, current: frozenset, on_apply):
-        super().__init__(parent)
-        self.title("Output Fields")
-        self.resizable(False, False)
-        self._on_apply = on_apply
-        self._vars: dict[tuple, tk.BooleanVar] = {}
-        self._build(current)
-        self.after(50,  self.lift)
-        self.after(100, self.grab_set)
-
-    def _build(self, current: frozenset):
-        outer = ctk.CTkFrame(self, fg_color="transparent")
-        outer.pack(fill="both", expand=True, padx=16, pady=16)
-
-        cats: dict[str, list] = {}
-        for g, n, label, _, cat in FIELD_DEFS:
-            if not cat:
-                continue
-            cats.setdefault(cat, []).append((g, n, label))
-
-        cat_order = ["Core", "Dates", "Timecode", "Technical", "Production"]
-        col = 0
-        for cat in cat_order:
-            if cat not in cats:
-                continue
-            frame = ctk.CTkFrame(outer)
-            frame.grid(row=0, column=col, sticky="nw", padx=6, pady=4)
-            ctk.CTkLabel(frame, text=cat,
-                         font=ctk.CTkFont(weight="bold")).pack(
-                anchor="w", padx=10, pady=(10, 4))
-            for g, n, label in cats[cat]:
-                var = tk.BooleanVar(value=(g, n) in current)
-                self._vars[(g, n)] = var
-                ctk.CTkCheckBox(frame, text=label, variable=var,
-                                onvalue=True, offvalue=False).pack(
-                    anchor="w", padx=10, pady=2)
-            ctk.CTkFrame(frame, height=10, fg_color="transparent").pack()
-            col += 1
-
-        btn_row = ctk.CTkFrame(outer, fg_color="transparent")
-        btn_row.grid(row=1, column=0, columnspan=col, sticky="ew", pady=(12, 0))
-
-        ctk.CTkButton(btn_row, text="Reset to Defaults", width=140,
-                      **_BTN_SECONDARY,
-                      command=self._reset).pack(side="left")
-        ctk.CTkButton(btn_row, text="Apply", width=90,
-                      command=self._apply).pack(side="right")
-        ctk.CTkButton(btn_row, text="Save as Defaults", width=140,
-                      command=self._save_defaults).pack(side="right", padx=(0, 6))
-
-    def _current_selection(self) -> frozenset:
-        return frozenset(k for k, v in self._vars.items() if v.get())
-
-    def _reset(self):
-        for (g, n), var in self._vars.items():
-            var.set((g, n) in DEFAULT_FIELDS)
-
-    def _save_defaults(self):
-        sel = self._current_selection()
-        cfg = load_config()
-        cfg["default_fields"] = [[g, n] for g, n in sel]
-        save_config(cfg)
-        self._on_apply(sel)
-        self.destroy()
-
-    def _apply(self):
-        self._on_apply(self._current_selection())
-        self.destroy()
-
-# ---------------------------------------------------------------------------
-# UI — Settings dialog
-# ---------------------------------------------------------------------------
-
-class SettingsDialog(ctk.CTkToplevel):
-    def __init__(self, parent, cfg: dict, on_save):
-        super().__init__(parent)
-        self.title("Settings")
-        self.resizable(False, False)
-        self._cfg    = cfg
-        self._on_save = on_save
-        self._build()
-        self.after(50,  self.lift)
-        self.after(100, self.grab_set)
-
-    def _build(self):
-        outer = ctk.CTkFrame(self, fg_color="transparent")
-        outer.pack(fill="both", expand=True, padx=28, pady=28)
-
-        ctk.CTkLabel(outer, text="Connection Settings",
-                     font=ctk.CTkFont(size=16, weight="bold")).pack(
-            anchor="w", pady=(0, 20))
-
-        def labeled_entry(label, default="", show=""):
-            ctk.CTkLabel(outer, text=label, anchor="w").pack(fill="x")
-            var = tk.StringVar(value=default)
-            ctk.CTkEntry(outer, textvariable=var, width=340, show=show).pack(
-                fill="x", pady=(2, 12))
-            return var
-
-        self.v_server    = labeled_entry("Server (IP or hostname)",
-                                         self._cfg.get("server", ""))
-        self.v_workgroup = labeled_entry("Workgroup name",
-                                         self._cfg.get("workgroup", "AvidWorkgroup"))
-        self.v_user      = labeled_entry("Username", self._cfg.get("username", ""))
-
-        ctk.CTkLabel(outer, text="Password", anchor="w").pack(fill="x")
-        self.v_pass = tk.StringVar(value=load_password(self._cfg.get("username", "")))
-        ctk.CTkEntry(outer, textvariable=self.v_pass, width=340, show="•").pack(
-            fill="x", pady=(2, 12))
-
-        self.lbl_status = ctk.CTkLabel(outer, text="", text_color="gray",
-                                        wraplength=340, anchor="w")
-        self.lbl_status.pack(fill="x", pady=(4, 12))
-
-        btn_row = ctk.CTkFrame(outer, fg_color="transparent")
-        btn_row.pack(fill="x")
-        ctk.CTkButton(btn_row, text="Test Connection", width=140,
-                      **_BTN_SECONDARY,
-                      command=self._test).pack(side="left")
-        ctk.CTkButton(btn_row, text="Save", width=100,
-                      command=self._save).pack(side="right")
-
-    def _test(self):
-        self.lbl_status.configure(text="Testing…", text_color="gray")
-        self.update_idletasks()
-        server = self.v_server.get().strip()
-        user   = self.v_user.get().strip()
-        pw     = self.v_pass.get()
-        wg     = self.v_workgroup.get().strip() or "AvidWorkgroup"
-
-        def work():
-            try:
-                client = InterplayClient(server, user, pw)
-                client.get_children(f"interplay://{wg}/",
-                                    folders=True, files=False, mobs=False)
-                self.after(0, lambda: self.lbl_status.configure(
-                    text="Connected successfully.", text_color="green"))
-            except Exception as e:
-                msg = _friendly_error(e)
-                self.after(0, lambda m=msg: self.lbl_status.configure(
-                    text=m, text_color="red"))
-
-        threading.Thread(target=work, daemon=True).start()
-
-    def _save(self):
-        username = self.v_user.get().strip()
-        new_cfg = {
-            **self._cfg,
-            "server":    self.v_server.get().strip(),
-            "workgroup": self.v_workgroup.get().strip() or "AvidWorkgroup",
-            "username":  username,
-        }
-        save_config(new_cfg)
-        save_password(username, self.v_pass.get())
-        self._on_save(new_cfg)
-        self.destroy()
-
-# ---------------------------------------------------------------------------
-# UI — Onboarding view (first-run)
-# ---------------------------------------------------------------------------
-
-class OnboardingView(ctk.CTkFrame):
-    def __init__(self, parent, on_complete):
-        super().__init__(parent, fg_color="transparent")
-        self._on_complete = on_complete
-        self._build()
-
-    def _build(self):
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-        card = ctk.CTkFrame(self, width=420, corner_radius=16)
-        card.grid(row=0, column=0, padx=40, pady=40)
-        card.grid_propagate(False)
-
-        inner = ctk.CTkFrame(card, fg_color="transparent")
-        inner.pack(fill="both", expand=True, padx=36, pady=36)
-
-        ctk.CTkLabel(inner, text="MediaCentral Explorer",
-                     font=ctk.CTkFont(size=22, weight="bold")).pack(pady=(0, 6))
-        ctk.CTkLabel(inner, text="Connect to your Avid MediaCentral workgroup",
-                     text_color="gray").pack(pady=(0, 28))
-
-        def labeled_entry(label, default="", show=""):
-            ctk.CTkLabel(inner, text=label, anchor="w").pack(fill="x")
-            var = tk.StringVar(value=default)
-            ctk.CTkEntry(inner, textvariable=var, show=show).pack(
-                fill="x", pady=(2, 12))
-            return var
-
-        self.v_server    = labeled_entry("Server (IP or hostname)")
-        self.v_workgroup = labeled_entry("Workgroup name", "AvidWorkgroup")
-        self.v_user      = labeled_entry("Username")
-        self.v_pass      = labeled_entry("Password", show="•")
-
-        self.lbl_status = ctk.CTkLabel(inner, text="", text_color="gray",
-                                        wraplength=340, anchor="w")
-        self.lbl_status.pack(fill="x", pady=(4, 12))
-
-        ctk.CTkButton(inner, text="Test Connection",
-                      **_BTN_SECONDARY,
-                      command=self._test).pack(fill="x", pady=(0, 8))
-        ctk.CTkButton(inner, text="Get Started",
-                      command=self._save).pack(fill="x")
-
-    def _test(self):
-        self.lbl_status.configure(text="Testing…", text_color="gray")
-        self.update_idletasks()
-        server = self.v_server.get().strip()
-        user   = self.v_user.get().strip()
-        pw     = self.v_pass.get()
-        wg     = self.v_workgroup.get().strip() or "AvidWorkgroup"
-
-        def work():
-            try:
-                client = InterplayClient(server, user, pw)
-                client.get_children(f"interplay://{wg}/",
-                                    folders=True, files=False, mobs=False)
-                self.after(0, lambda: self.lbl_status.configure(
-                    text="Connected successfully.", text_color="green"))
-            except Exception as e:
-                msg = _friendly_error(e)
-                self.after(0, lambda m=msg: self.lbl_status.configure(
-                    text=m, text_color="red"))
-
-        threading.Thread(target=work, daemon=True).start()
-
-    def _save(self):
-        server = self.v_server.get().strip()
-        user   = self.v_user.get().strip()
-        if not server or not user:
-            self.lbl_status.configure(
-                text="Server and username are required.", text_color="orange")
-            return
-        cfg = {
-            "server":    server,
-            "workgroup": self.v_workgroup.get().strip() or "AvidWorkgroup",
-            "username":  user,
-        }
-        save_config(cfg)
-        save_password(user, self.v_pass.get())
-        self._on_complete(cfg)
-
-# ---------------------------------------------------------------------------
-# UI — Navigation panel (left sidebar folder browser)
-# ---------------------------------------------------------------------------
-
-class NavPanel(ctk.CTkFrame):
-    def __init__(self, parent, on_load_project, on_settings=None):
-        super().__init__(parent, width=280, corner_radius=0)
-        self.pack_propagate(False)
-        self._on_load       = on_load_project
-        self._on_settings   = on_settings
-        self._client: InterplayClient | None = None
-        self._cfg:    dict = {}
-        self._stack:  list[tuple[str, str]] = []   # (display_name, uri)
-        self._items:  list[dict] = []
-        self._filter_job: str | None = None
-        self._filter_var = tk.StringVar()
-        self._filter_var.trace_add("write", lambda *_: self._debounce_filter())
-        self._build()
-
-    def _build(self):
-        # ── Step 1: Connection ────────────────────────────────────────────────
-        _nav_section(self, "Connection")
-
-        conn_row = ctk.CTkFrame(self, fg_color="transparent")
-        conn_row.pack(fill="x", padx=8, pady=(0, 4))
-
-        self._lbl_connection = ctk.CTkLabel(
-            conn_row, text="Not connected",
-            text_color="gray", font=ctk.CTkFont(size=11), anchor="w")
-        self._lbl_connection.pack(side="left", fill="x", expand=True)
-
-        if self._on_settings:
-            ctk.CTkButton(
-                conn_row, text="⚙", width=28, height=28,
-                **_BTN_SECONDARY,
-                command=self._on_settings).pack(side="right")
-
-        # ── Step 2: Browse ────────────────────────────────────────────────────
-        _nav_section(self, "Browse")
-
-        nav_row = ctk.CTkFrame(self, fg_color="transparent")
-        nav_row.pack(fill="x", padx=8, pady=(0, 4))
-
-        self._btn_back = ctk.CTkButton(
-            nav_row, text="← Back", width=72, height=28,
-            **_BTN_SECONDARY,
-            state="disabled", command=self._go_back)
-        self._btn_back.pack(side="left")
-
-        self._lbl_crumb = ctk.CTkLabel(
-            nav_row, text="", anchor="w", text_color="gray",
-            font=ctk.CTkFont(size=11), wraplength=150)
-        self._lbl_crumb.pack(side="left", padx=(6, 0))
-
-        ctk.CTkEntry(self, textvariable=self._filter_var,
-                     placeholder_text="Filter…",
-                     height=32).pack(fill="x", padx=8, pady=(4, 6))
-
-        self._scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self._scroll.pack(fill="both", expand=True, padx=4, pady=(0, 4))
-
-        self._lbl_hint = ctk.CTkLabel(
-            self._scroll, text="",
-            text_color="gray", font=ctk.CTkFont(size=12),
-            wraplength=240)
-        self._lbl_hint.pack(pady=20)
-
-        # ── Step 3: Generate ─────────────────────────────────────────────────
-        _nav_section(self, "Generate")
-
-        self._btn_generate = ctk.CTkButton(
-            self, text="Generate Report",
-            state="disabled",
-            command=self._generate_current)
-        self._btn_generate.pack(fill="x", padx=8, pady=(0, 4))
-
-        self._lbl_status = ctk.CTkLabel(
-            self, text="", text_color="gray",
-            font=ctk.CTkFont(size=11), anchor="w")
-        self._lbl_status.pack(fill="x", padx=10, pady=(0, 8))
-
-    # ── Public ────────────────────────────────────────────────────────────────
-
-    def connect(self, client: InterplayClient, cfg: dict):
-        self._client = client
-        self._cfg    = cfg
-        wg           = cfg.get("workgroup", "AvidWorkgroup")
-        server       = cfg.get("server", "")
-        self._lbl_connection.configure(
-            text=f"{server}  ·  {wg}", text_color=("gray30", "gray70"))
-        root_uri     = f"interplay://{wg}/"
-        self._stack  = [("Root", root_uri)]
-        self._load_level(root_uri)
-
-    # ── Navigation ────────────────────────────────────────────────────────────
-
-    def _load_level(self, uri: str):
-        self._set_status("Loading…")
-        self._lbl_hint.configure(text="Loading…")
-        self._clear_list()
-        client = self._client
-
-        def work():
-            try:
-                items = client.get_children(uri, folders=True, files=False, mobs=False)
-                self.after(0, lambda i=items: self._level_done(i))
-            except Exception as e:
-                msg = str(e)
-                self.after(0, lambda m=msg: self._load_error(m))
-
-        threading.Thread(target=work, daemon=True).start()
-
-    def _level_done(self, items: list[dict]):
-        self._items = sorted(items, key=lambda a: natural_key(a["name"]))
-        self._render_list()
-        n = len(self._items)
-        self._set_status(f"{n} item{'s' if n != 1 else ''}")
-        crumb = " › ".join(name for name, _ in self._stack[1:])
-        self._lbl_crumb.configure(text=crumb)
-        at_root = len(self._stack) <= 1
-        self._btn_back.configure(state="disabled" if at_root else "normal")
-        self._btn_generate.configure(state="disabled" if at_root else "normal")
-
-    def _load_error(self, msg: str):
-        self._lbl_hint.configure(text=f"Error: {msg}")
-        self._set_status("Error")
-
-    def _render_list(self):
-        self._clear_list()
-        q = self._filter_var.get().lower()
-        visible = [i for i in self._items
-                   if not q or q in i["name"].lower()]
-
-        if not visible:
-            hint = "No items match." if q else "Empty."
-            self._lbl_hint.configure(text=hint)
-            self._lbl_hint.pack(pady=20)
-            return
-
-        self._lbl_hint.pack_forget()
-        for item in visible:
-            row = ctk.CTkFrame(self._scroll, fg_color="transparent")
-            row.pack(fill="x", pady=1)
-            ctk.CTkButton(
-                row,
-                text=item["name"],
-                anchor="w",
-                fg_color="transparent",
-                text_color=("gray10", "gray90"),
-                hover_color=("gray85", "gray25"),
-                height=34,
-                command=lambda i=item: self._navigate(i)
-            ).pack(side="left", fill="x", expand=True)
-            ctk.CTkButton(
-                row,
-                text="→",
-                width=34, height=34,
-                **_BTN_SECONDARY,
-                command=lambda i=item: self._load_as_project(i)
-            ).pack(side="right", padx=(2, 0))
-
-    def _clear_list(self):
-        for w in self._scroll.winfo_children():
-            w.destroy()
-        self._lbl_hint = ctk.CTkLabel(
-            self._scroll, text="",
-            text_color="gray", font=ctk.CTkFont(size=12),
-            wraplength=240)
-
-    def _debounce_filter(self):
-        if self._filter_job:
-            self.after_cancel(self._filter_job)
-        self._filter_job = self.after(150, self._render_list)
-
-    def _generate_current(self):
-        if len(self._stack) < 2:
-            return
-        name, uri = self._stack[-1]
-        self._on_load(name, uri, self._client)
-
-    def _navigate(self, item: dict):
-        self._stack.append((item["name"], item["uri"]))
-        self._load_level(item["uri"])
-
-    def _load_as_project(self, item: dict):
-        self._on_load(item["name"], item["uri"], self._client)
-
-    def _go_back(self):
-        if len(self._stack) > 1:
-            self._stack.pop()
-            _, uri = self._stack[-1]
-            self._load_level(uri)
-
-    def _set_status(self, msg: str):
-        self._lbl_status.configure(text=msg)
-
-# ---------------------------------------------------------------------------
-# UI — Detail panel (right: output + actions)
-# ---------------------------------------------------------------------------
-
-class DetailPanel(ctk.CTkFrame):
-    def __init__(self, parent):
-        super().__init__(parent, fg_color="transparent")
-        self._last_output   = ""
-        self._last_project  = ""
-        self._last_sections: list[dict] = []
-        self._active_fields = DEFAULT_FIELDS
-        self._loading       = False
-        self._build()
-
-    def _build(self):
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-
-        # ── Top bar ───────────────────────────────────────────────────────────
-        top = ctk.CTkFrame(self, fg_color="transparent")
-        top.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 4))
-
-        self._lbl_project = ctk.CTkLabel(
-            top, text="No project loaded",
-            font=ctk.CTkFont(size=14, weight="bold"), anchor="w")
-        self._lbl_project.pack(side="left", fill="x", expand=True)
-
-        self._btn_fields = ctk.CTkButton(
-            top, text="Fields…", width=90,
-            **_BTN_SECONDARY,
-            command=self._open_fields)
-        self._btn_export = ctk.CTkButton(
-            top, text="↓", width=36, height=36,
-            **_BTN_SECONDARY,
-            state="disabled", command=self._export)
-        self._btn_email  = ctk.CTkButton(
-            top, text="✉", width=36, height=36,
-            **_BTN_SECONDARY,
-            state="disabled", command=self._email)
-        self._btn_copy   = ctk.CTkButton(
-            top, text="⎘", width=36, height=36,
-            **_BTN_SECONDARY,
-            state="disabled", command=self._copy)
-
-        for btn in (self._btn_export, self._btn_email,
-                    self._btn_copy, self._btn_fields):
-            btn.pack(side="right", padx=(6, 0))
-
-        # ── Text output ───────────────────────────────────────────────────────
-        self._txt = ctk.CTkTextbox(
-            self,
-            font=ctk.CTkFont(family="Courier New", size=10),
-            wrap="none",
-            state="disabled",
-            corner_radius=6)
-        self._txt.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 4))
-
-        # ── Status bar ────────────────────────────────────────────────────────
-        self._lbl_status = ctk.CTkLabel(
-            self, text="Select a project from the panel on the left.",
-            anchor="w", text_color="gray", font=ctk.CTkFont(size=11))
-        self._lbl_status.grid(row=2, column=0, sticky="ew", padx=14, pady=(0, 10))
-
-    # ── Public API ────────────────────────────────────────────────────────────
-
-    def set_status(self, msg: str):
-        self._lbl_status.configure(text=msg)
-
-    def set_active_fields(self, fields: frozenset):
-        self._active_fields = fields
-
-    def start_loading(self, project_name: str):
-        self._loading = True
-        self._lbl_project.configure(text=f"{project_name}  —  loading…")
-        self._set_output("")
-        self._set_action_btns(False)
-        self.set_status(f"Loading '{project_name}'…")
-
-    def load_done(self, output: str, name: str, sections: list[dict]):
-        self._loading       = False
-        self._last_sections = sections
-        self._last_project  = name
-        self._lbl_project.configure(text=name)
-        self._set_output(output)
-        self._set_action_btns(True)
-        n = sum(len(s["items"]) for s in sections)
-        self.set_status(f"Loaded '{name}' — {n} item(s).")
-
-    def load_error(self, msg: str):
-        self._loading = False
-        self._lbl_project.configure(text="Load failed")
-        self.set_status(f"Error: {msg}")
-        messagebox.showerror("Load Error", msg, parent=self.winfo_toplevel())
-
-    # ── Internal ──────────────────────────────────────────────────────────────
-
-    def _set_output(self, text: str):
-        self._txt.configure(state="normal")
-        self._txt.delete("1.0", "end")
-        if text:
-            self._txt.insert("end", text)
-        self._txt.configure(state="disabled")
-        self._last_output = text
-
-    def _set_action_btns(self, enabled: bool):
-        state = "normal" if enabled else "disabled"
-        for btn in (self._btn_copy, self._btn_email, self._btn_export):
-            btn.configure(state=state)
-
-    def _rerender(self):
-        if self._last_sections and self._last_project:
-            text = format_project(self._last_project,
-                                  self._last_sections,
-                                  self._active_fields)
-            self._set_output(text)
-
-    def _open_fields(self):
-        def on_apply(sel: frozenset):
-            self._active_fields = sel
-            self._rerender()
-            self.set_status(f"Fields updated ({len(sel)} selected).")
-        FieldsDialog(self.winfo_toplevel(), self._active_fields, on_apply)
-
-    def _copy(self):
-        root = self.winfo_toplevel()
-        root.clipboard_clear()
-        root.clipboard_append(self._last_output)
-        self.set_status("Copied to clipboard.")
-
-    def _export(self):
-        if not self._last_output.strip():
-            return
-        path = filedialog.asksaveasfilename(
-            defaultextension=".txt",
-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
-            initialfile=(f"{self._last_project}.txt"
-                         if self._last_project else "export.txt"),
-            parent=self.winfo_toplevel())
-        if path:
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(self._last_output)
-            self.set_status(f"Saved → {path}")
-
-    def _email(self):
-        subject = urllib.parse.quote(f"Interplay Project: {self._last_project}")
-        body    = urllib.parse.quote(self._last_output)
-        webbrowser.open(f"mailto:?subject={subject}&body={body}")
-        self.set_status("Opening email client…")
-
-# ---------------------------------------------------------------------------
-# Auto-update
+# Updater
 # ---------------------------------------------------------------------------
 
 class Updater:
-    """Check GitHub Releases, download the platform asset, and launch the installer."""
-
     def __init__(self):
         self._pending: Path | None = None
 
@@ -1080,34 +461,30 @@ class Updater:
     def set_pending(self, path: Path):
         self._pending = path
 
-    def check_async(self, on_update, on_error=None):
-        """Background check; calls on_update(tag, url) when a newer release exists."""
+    def check_for_update(self) -> dict:
+        """Synchronous check — call from a background thread or API handler."""
         if __version__ == "dev":
-            return
-
-        cfg   = load_config()
-        owner = cfg.get("github_owner", GITHUB_OWNER)
-        repo  = cfg.get("github_repo",  GITHUB_REPO)
-
-        def work():
-            try:
-                resp = requests.get(
-                    f"https://api.github.com/repos/{owner}/{repo}/releases/latest",
-                    headers={"Accept": "application/vnd.github+json"},
-                    timeout=10)
-                resp.raise_for_status()
-                data   = resp.json()
-                tag    = data.get("tag_name", "").lstrip("v")
-                assets = data.get("assets", [])
-                if self._newer_than_current(tag):
-                    url = self._asset_url(assets)
-                    if url:
-                        on_update(tag, url)
-            except Exception as e:
-                if on_error:
-                    on_error(str(e))
-
-        threading.Thread(target=work, daemon=True).start()
+            return {"available": False, "current": __version__}
+        try:
+            cfg   = load_config()
+            owner = cfg.get("github_owner", GITHUB_OWNER)
+            repo  = cfg.get("github_repo",  GITHUB_REPO)
+            resp  = requests.get(
+                f"https://api.github.com/repos/{owner}/{repo}/releases/latest",
+                headers={"Accept": "application/vnd.github+json"},
+                timeout=10)
+            resp.raise_for_status()
+            data   = resp.json()
+            tag    = data.get("tag_name", "").lstrip("v")
+            assets = data.get("assets", [])
+            if self._newer_than_current(tag):
+                url = self._asset_url(assets)
+                if url:
+                    return {"available": True, "tag": tag, "url": url,
+                            "current": __version__}
+        except Exception:
+            pass
+        return {"available": False, "current": __version__}
 
     @staticmethod
     def _newer_than_current(tag: str) -> bool:
@@ -1126,23 +503,17 @@ class Updater:
                 return a.get("browser_download_url", "")
         return ""
 
-    def download(self, url: str, progress_fn=None) -> Path:
-        """Stream url to a temp file; progress_fn(0.0–1.0) called if supplied."""
+    def download(self, url: str) -> Path:
         suffix = ".exe" if IS_WIN else ".dmg"
         fd, tmp_str = tempfile.mkstemp(suffix=suffix)
         os.close(fd)
         tmp = Path(tmp_str)
         resp = requests.get(url, stream=True, timeout=120)
         resp.raise_for_status()
-        total   = int(resp.headers.get("content-length", 0))
-        written = 0
         with open(tmp, "wb") as f:
             for chunk in resp.iter_content(chunk_size=65536):
                 if chunk:
                     f.write(chunk)
-                    written += len(chunk)
-                    if progress_fn and total:
-                        progress_fn(written / total)
         return tmp
 
     def launch_installer(self, path: Path):
@@ -1155,11 +526,10 @@ class Updater:
     def _mac_install(dmg: Path):
         fd, mount_str = tempfile.mkstemp(suffix="_mount")
         os.close(fd)
-        os.unlink(mount_str)           # hdiutil needs a non-existent mountpoint dir
+        os.unlink(mount_str)
         mount_pt = mount_str
 
         if getattr(sys, "frozen", False):
-            # Running as .app: sys.executable = .../MCExplorer.app/Contents/MacOS/MCExplorer
             app_dest    = str(Path(sys.executable).parent.parent.parent)
             install_dir = str(Path(app_dest).parent)
         else:
@@ -1176,341 +546,163 @@ class Updater:
             f'cp -R "{mount_pt}/MCExplorer.app" "{install_dir}/"\n'
             f'hdiutil detach "{mount_pt}" -quiet\n'
             f'open "{install_dir}/MCExplorer.app"\n'
-            "rm -- \"$0\"\n"
+            'rm -- "$0"\n'
         )
         Path(script_str).write_text(script, encoding="utf-8")
         Path(script_str).chmod(0o755)
         subprocess.Popen(["bash", script_str], close_fds=True, start_new_session=True)
 
-
-class UpdateDialog(ctk.CTkToplevel):
-    def __init__(self, parent, updater: Updater, tag: str, url: str):
-        super().__init__(parent)
-        self.title("Update Available")
-        self.resizable(False, False)
-        self._updater = updater
-        self._tag     = tag
-        self._url     = url
-        self._build()
-        self.after(50,  self.lift)
-        self.after(100, self.grab_set)
-
-    def _build(self):
-        frame = ctk.CTkFrame(self, fg_color="transparent")
-        frame.pack(padx=36, pady=28, fill="both", expand=True)
-
-        ctk.CTkLabel(frame, text="Update Available",
-                     font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(0, 8))
-        ctk.CTkLabel(frame,
-                     text=(f"Version {self._tag} is available.\n"
-                           f"You have version {__version__}."),
-                     text_color="gray", justify="center").pack(pady=(0, 20))
-
-        self._lbl_status = ctk.CTkLabel(frame, text="", text_color="gray",
-                                         font=ctk.CTkFont(size=11))
-        self._lbl_status.pack(pady=(0, 16))
-
-        btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        btn_frame.pack(fill="x")
-
-        self._btn_now   = ctk.CTkButton(btn_frame, text="Install Now",
-                                         command=self._install_now)
-        self._btn_quit  = ctk.CTkButton(btn_frame, text="Install on Quit",
-                                         **_BTN_SECONDARY,
-                                         command=self._install_on_quit)
-        self._btn_later = ctk.CTkButton(btn_frame, text="Later",
-                                         **_BTN_SECONDARY,
-                                         command=self.destroy)
-
-        self._btn_now.pack(fill="x", pady=(0, 6))
-        self._btn_quit.pack(fill="x", pady=(0, 6))
-        self._btn_later.pack(fill="x")
-
-    def _set_buttons(self, enabled: bool):
-        state = "normal" if enabled else "disabled"
-        for btn in (self._btn_now, self._btn_quit, self._btn_later):
-            btn.configure(state=state)
-
-    def _install_now(self):
-        self._set_buttons(False)
-        self._lbl_status.configure(text="Downloading…", text_color="gray")
-        url = self._url
-
-        def work():
-            try:
-                def progress(pct):
-                    self.after(0, lambda p=pct: self._lbl_status.configure(
-                        text=f"Downloading… {int(p * 100)}%"))
-                path = self._updater.download(url, progress_fn=progress)
-                self.after(0, lambda p=path: self._do_install_now(p))
-            except Exception as e:
-                msg = str(e)
-                self.after(0, lambda m=msg: self._download_error(m))
-
-        threading.Thread(target=work, daemon=True).start()
-
-    def _do_install_now(self, path: Path):
-        self._lbl_status.configure(text="Launching installer…", text_color="green")
-        self._updater.launch_installer(path)
-        self.after(1200, lambda: self.winfo_toplevel().quit())
-
-    def _install_on_quit(self):
-        self._set_buttons(False)
-        self._lbl_status.configure(text="Downloading in background…", text_color="gray")
-        url = self._url
-
-        def work():
-            try:
-                path = self._updater.download(url)
-                self._updater.set_pending(path)
-                self.after(0, self._pending_done)
-            except Exception as e:
-                msg = str(e)
-                self.after(0, lambda m=msg: self._download_error(m))
-
-        threading.Thread(target=work, daemon=True).start()
-
-    def _pending_done(self):
-        self._lbl_status.configure(text="Ready — installer will run on quit.", text_color="green")
-        self.after(2000, self.destroy)
-
-    def _download_error(self, msg: str):
-        self._lbl_status.configure(text=f"Download failed: {msg[:80]}", text_color="red")
-        self._set_buttons(True)
-
-
 # ---------------------------------------------------------------------------
-# UI — Main application window
+# JavaScript API (exposed to the webview frontend)
 # ---------------------------------------------------------------------------
 
-class App(ctk.CTk):
+class Api:
     def __init__(self):
-        super().__init__()
-        self.title("MediaCentral Explorer")
-        self.geometry("1100x700")
-        self.minsize(800, 520)
+        self._window: webview.Window | None = None
+        self._client: InterplayClient | None = None
+        self._cfg    = load_config()
+        self._updater = Updater()
 
-        self._cfg          = load_config()
-        self._current_view: ctk.CTkFrame | None = None
-        self._updater      = Updater()
+    def _set_window(self, window: webview.Window):
+        self._window = window
 
-        self._platform_setup()
-        self.protocol("WM_DELETE_WINDOW", self._on_close)
-        self.after(4000, self._check_for_updates)
+    def _push_status(self, msg: str):
+        if self._window:
+            safe = json.dumps(msg)
+            self._window.evaluate_js(f"window._onStatus && window._onStatus({safe})")
 
-        if self._cfg.get("server"):
-            self._show_main()
-        else:
-            self._show_onboarding()
+    # ── Config / credentials ──────────────────────────────────────────────────
 
-    # ── Platform integration ──────────────────────────────────────────────────
+    def get_version(self) -> str:
+        return __version__
 
-    def _platform_setup(self):
-        if sys.platform == "darwin":
-            self._setup_mac_menu()
-        elif sys.platform == "win32":
-            try:
-                import ctypes
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-                    "com.markbattistella.mcexplorer")
-            except Exception:
-                pass
-            # Set window/taskbar icon (bundled exe has it embedded but Tk
-            # overrides it with its own default unless we set it explicitly)
-            if getattr(sys, "frozen", False):
-                ico = Path(sys.executable).parent / "icon.ico"
-            else:
-                ico = _ASSETS / "icon.ico"
-            if ico.exists():
-                try:
-                    self.iconbitmap(str(ico))
-                except Exception:
-                    pass
+    def get_config(self) -> dict:
+        return {
+            "server":     self._cfg.get("server", ""),
+            "workgroup":  self._cfg.get("workgroup", "AvidWorkgroup"),
+            "username":   self._cfg.get("username", ""),
+            "start_path": self._cfg.get("start_path", ""),
+            "max_depth":  self._cfg.get("max_depth", 0),
+        }
 
-    def _setup_mac_menu(self):
-        menubar = tk.Menu(self)
+    def get_password(self, username: str) -> str:
+        return load_password(username)
 
-        # "apple" is the special name for the macOS application menu
-        app_menu = tk.Menu(menubar, name="apple")
-        menubar.add_cascade(menu=app_menu)
-        app_menu.add_command(label="About MediaCentral Explorer",
-                             command=self._show_about)
-        app_menu.add_separator()
-        app_menu.add_command(label="Settings…", command=self._open_settings)
+    def get_root_uri(self) -> str:
+        wg = self._cfg.get("workgroup", "AvidWorkgroup")
+        return f"interplay://{wg}/"
 
-        # Standard Window menu
-        window_menu = tk.Menu(menubar, name="window")
-        menubar.add_cascade(label="Window", menu=window_menu)
+    def save_settings(self, server: str, workgroup: str,
+                      username: str, password: str,
+                      start_path: str = "", max_depth: int = 0) -> dict:
+        server     = server.strip()
+        workgroup  = workgroup.strip() or "AvidWorkgroup"
+        username   = username.strip()
+        start_path = start_path.strip()
+        if not server or not username:
+            return {"ok": False, "error": "Server and username are required."}
+        new_cfg = {**self._cfg, "server": server, "workgroup": workgroup,
+                   "username": username, "start_path": start_path,
+                   "max_depth": int(max_depth)}
+        save_config(new_cfg)
+        save_password(username, password)
+        self._cfg    = new_cfg
+        self._client = InterplayClient(server, username, password)
+        return {"ok": True}
 
-        self.configure(menu=menubar)
+    # ── Connection / browsing ─────────────────────────────────────────────────
 
-        # Hook system-level commands so our handlers run instead of defaults
-        self.createcommand("tk::mac::ShowAbout", self._show_about)
-        self.createcommand("tk::mac::Quit",      self._on_close)
+    def test_connection(self, server: str, workgroup: str,
+                        username: str, password: str) -> dict:
+        try:
+            client = InterplayClient(server.strip(), username.strip(), password)
+            wg = workgroup.strip() or "AvidWorkgroup"
+            client.get_children(f"interplay://{wg}/",
+                                folders=True, files=False, mobs=False)
+            return {"ok": True, "message": "Connected successfully."}
+        except Exception as e:
+            return {"ok": False, "message": _friendly_error(e)}
 
-    def _show_about(self):
-        dlg = ctk.CTkToplevel(self)
-        dlg.title("About")
-        dlg.resizable(False, False)
+    def get_children(self, uri: str) -> list | dict:
+        if not self._client:
+            return {"error": "Not connected. Open Settings and save your credentials."}
+        try:
+            items = self._client.get_children(
+                uri, folders=True, files=False, mobs=False)
+            return [{"name": i["name"], "uri": i["uri"]}
+                    for i in sorted(items, key=lambda a: natural_key(a["name"]))]
+        except Exception as e:
+            return {"error": _friendly_error(e)}
 
-        frame = ctk.CTkFrame(dlg, fg_color="transparent")
-        frame.pack(padx=40, pady=36)
+    def load_project(self, name: str, uri: str) -> dict:
+        if not self._client:
+            return {"error": "Not connected."}
+        try:
+            def sf(msg):
+                self._push_status(msg)
+            sections = load_project_data(self._client, uri, status_fn=sf)
+            saved = self._cfg.get("default_fields")
+            active = frozenset(tuple(x) for x in saved) if saved else DEFAULT_FIELDS
+            text = format_project(name, sections, active)
+            n = sum(len(s["items"]) for s in sections)
+            return {"text": text, "summary": f"{n} item{'s' if n != 1 else ''} loaded."}
+        except Exception as e:
+            return {"error": _friendly_error(e)}
 
-        ctk.CTkLabel(frame, text="MediaCentral Explorer",
-                     font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(0, 4))
-        ctk.CTkLabel(frame, text=f"Version {__version__}",
-                     text_color="gray").pack(pady=(0, 20))
+    # ── File / export actions ─────────────────────────────────────────────────
 
-        ctk.CTkLabel(frame, text="Mark Battistella",
-                     font=ctk.CTkFont(size=13, weight="bold")).pack()
-        ctk.CTkLabel(frame, text="markbattistella.com",
-                     text_color="gray").pack(pady=(2, 20))
+    def save_to_file(self, filename: str, text: str) -> dict:
+        if not self._window:
+            return {"ok": False}
+        result = self._window.create_file_dialog(
+            webview.SAVE_DIALOG,
+            save_filename=filename,
+            file_types=("Text files (*.txt)",))
+        if not result:
+            return {"ok": False}
+        path = result[0] if isinstance(result, (list, tuple)) else result
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(text)
+            return {"ok": True, "path": path}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
 
-        ctk.CTkLabel(frame,
-                     text=f"© 2010–{datetime.now().year} Mark Battistella.\nAll rights reserved.",
-                     text_color="gray", font=ctk.CTkFont(size=11),
-                     justify="center").pack(pady=(0, 20))
-
-        ctk.CTkButton(frame, text="Close", width=100,
-                      command=dlg.destroy).pack()
-
-        dlg.after(50,  dlg.lift)
-        dlg.after(100, dlg.grab_set)
+    def open_email(self, project_name: str, text: str) -> dict:
+        subject = urllib.parse.quote(f"Interplay Project: {project_name}")
+        body    = urllib.parse.quote(text)
+        webbrowser.open(f"mailto:?subject={subject}&body={body}")
+        return {"ok": True}
 
     # ── Updates ───────────────────────────────────────────────────────────────
 
-    def _check_for_updates(self):
-        def on_update(tag: str, url: str):
-            self.after(0, lambda: UpdateDialog(self, self._updater, tag, url))
-        self._updater.check_async(on_update)
+    def check_updates(self) -> dict:
+        return self._updater.check_for_update()
 
-    def _on_close(self):
-        pending = self._updater.pending_path
-        if pending and pending.exists():
-            self._updater.launch_installer(pending)
-        self.quit()
-
-    # ── View switching ────────────────────────────────────────────────────────
-
-    def _show_onboarding(self):
-        if self._current_view:
-            self._current_view.destroy()
-        self._current_view = OnboardingView(self, self._onboarding_complete)
-        self._current_view.pack(fill="both", expand=True)
-
-    def _onboarding_complete(self, cfg: dict):
-        self._cfg = cfg
-        self._show_main()
-
-    def _show_main(self):
-        if self._current_view:
-            self._current_view.destroy()
-
-        root_frame = ctk.CTkFrame(self, fg_color="transparent")
-        root_frame.pack(fill="both", expand=True)
-        self._current_view = root_frame
-
-        # ── Header ────────────────────────────────────────────────────────────
-        header = ctk.CTkFrame(root_frame, height=60, corner_radius=0,
-                               fg_color=("gray90", "gray15"))
-        header.pack(side="top", fill="x")
-        header.pack_propagate(False)
-
-        title_block = ctk.CTkFrame(header, fg_color="transparent")
-        title_block.pack(side="left", padx=16, fill="y", pady=10)
-        ctk.CTkLabel(title_block, text="Avid MediaCentral",
-                     font=ctk.CTkFont(size=14, weight="bold"),
-                     anchor="w").pack(anchor="w")
-        ctk.CTkLabel(title_block, text="Metadata Exporter",
-                     font=ctk.CTkFont(size=11),
-                     text_color="gray", anchor="w").pack(anchor="w")
-
-        # ── Divider under header ───────────────────────────────────────────────
-        ctk.CTkFrame(root_frame, height=1,
-                     fg_color=("gray80", "gray30")).pack(side="top", fill="x")
-
-        # ── Footer (pack before content so it claims bottom space first) ──────
-        footer = ctk.CTkFrame(root_frame, height=24, corner_radius=0,
-                               fg_color=("gray85", "gray18"))
-        footer.pack(side="bottom", fill="x")
-        footer.pack_propagate(False)
-        ctk.CTkLabel(footer,
-                     text=f"© Mark Battistella {datetime.now().year}",
-                     font=ctk.CTkFont(size=10), text_color="gray").pack(
-            side="left", padx=10)
-
-        # ── Content area ──────────────────────────────────────────────────────
-        content = ctk.CTkFrame(root_frame, fg_color="transparent")
-        content.pack(side="top", fill="both", expand=True)
-
-        # Nav panel (fixed width left sidebar)
-        self._nav = NavPanel(content, self._load_project, self._open_settings)
-        self._nav.pack(side="left", fill="y")
-
-        # Vertical divider between nav and detail
-        ctk.CTkFrame(content, width=1,
-                     fg_color=("gray80", "gray30")).pack(side="left", fill="y")
-
-        # Detail panel (fills remaining space)
-        self._detail = DetailPanel(content)
-        self._detail.pack(side="left", fill="both", expand=True)
-
-        # Restore saved field preferences
-        saved = self._cfg.get("default_fields")
-        if saved:
-            self._detail.set_active_fields(frozenset(tuple(x) for x in saved))
-
-        # Connect nav panel using saved credentials
-        self._reconnect()
-
-    # ── Settings ──────────────────────────────────────────────────────────────
-
-    def _open_settings(self):
-        if not hasattr(self, "_nav"):
-            return
-        def on_save(new_cfg: dict):
-            self._cfg = new_cfg
-            self._reconnect()
-        SettingsDialog(self, self._cfg, on_save)
-
-    def _reconnect(self):
+    def install_update_now(self, url: str) -> dict:
         try:
-            client = self._make_client()
-        except ValueError:
-            return
-        self._nav.connect(client, self._cfg)
+            path = self._updater.download(url)
+            self._updater.launch_installer(path)
+            if self._window:
+                import threading
+                def _quit():
+                    import time; time.sleep(1.5)
+                    self._window.destroy()
+                threading.Thread(target=_quit, daemon=True).start()
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
 
-    def _make_client(self) -> InterplayClient:
-        server = self._cfg.get("server", "").strip()
-        user   = self._cfg.get("username", "").strip()
-        pw     = load_password(user)
-        if not server:
-            raise ValueError("No server configured.")
-        if not user:
-            raise ValueError("No username configured.")
-        return InterplayClient(server, user, pw)
-
-    # ── Project loading ───────────────────────────────────────────────────────
-
-    def _load_project(self, name: str, uri: str, client: InterplayClient):
-        self._detail.start_loading(name)
-
-        def work():
-            try:
-                def sf(msg):
-                    self.after(0, lambda m=msg: self._detail.set_status(m))
-                sections = load_project_data(client, uri, status_fn=sf)
-                output   = format_project(name, sections, self._detail._active_fields)
-                self.after(0, lambda o=output, n=name, s=sections:
-                           self._detail.load_done(o, n, s))
-            except Exception as exc:
-                msg = str(exc)
-                self.after(0, lambda m=msg: self._detail.load_error(m))
-
-        threading.Thread(target=work, daemon=True).start()
+    def queue_update(self, url: str) -> dict:
+        try:
+            path = self._updater.download(url)
+            self._updater.set_pending(path)
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
 
 # ---------------------------------------------------------------------------
-# CLI entry point
+# CLI entry point (unchanged)
 # ---------------------------------------------------------------------------
 
 def _cli():
@@ -1529,8 +721,6 @@ def _cli():
                         help="Override active fields as Group.Name pairs")
     parser.add_argument("--debug", action="store_true",
                         help="Print raw asset info for each item")
-    parser.add_argument("--raw-xml", action="store_true",
-                        help="Dump raw SOAP XML for the first bin and exit")
     args = parser.parse_args()
 
     client = InterplayClient(args.server, args.user, args.password)
@@ -1548,9 +738,6 @@ def _cli():
             return
         for p in sorted(projects, key=lambda x: natural_key(x["name"])):
             print(f"  {p['name']}")
-            if args.debug:
-                print(f"    type : {p.get('type', '(empty)')}")
-                print(f"    uri  : {p['uri']}")
         print(f"\n{len(projects)} project(s) found.")
         return
 
@@ -1565,53 +752,11 @@ def _cli():
     matches = [p for p in projects if args.project.lower() in p["name"].lower()]
     if not matches:
         print(f"No project matching '{args.project}'.")
-        print("Available projects:")
-        for p in sorted(projects, key=lambda x: natural_key(x["name"])):
-            print(f"  {p['name']}")
         sys.exit(1)
 
     proj = matches[0]
-    if len(matches) > 1:
-        print(f"Multiple matches — using: {proj['name']}")
-
-    if args.fields:
-        active = frozenset(tuple(f.split(".", 1)) for f in args.fields if "." in f)
-    else:
-        active = DEFAULT_FIELDS
-
-    if getattr(args, "raw_xml", False):
-        import xml.dom.minidom
-        print(f"Fetching children of project URI: {proj['uri']}")
-        try:
-            bins = client.get_children(proj["uri"], folders=True, files=False, mobs=False)
-        except Exception as e:
-            print(f"ERROR listing bins: {e}", file=sys.stderr)
-            sys.exit(1)
-        if not bins:
-            print("No bins found in project.")
-            sys.exit(0)
-        target = bins[0]
-        print(f"\nFirst bin: {target['name']}")
-        print(f"Bin URI:   {target['uri']}\n")
-        print("── Raw SOAP response for GetChildren on that bin ──")
-        ra = "".join(
-            f'<types:Attribute Group="{g}" Name="{n}"/>'
-            for g, n in RETURN_ATTRS)
-        uri  = target["uri"]
-        body = (f"<types:GetChildren>"
-                f"<types:InterplayURI>{html_lib.escape(uri)}</types:InterplayURI>"
-                f"<types:IncludeFolders>false</types:IncludeFolders>"
-                f"<types:IncludeFiles>true</types:IncludeFiles>"
-                f"<types:IncludeMOBs>true</types:IncludeMOBs>"
-                f"<types:ReturnAttributes>{ra}</types:ReturnAttributes>"
-                f"</types:GetChildren>")
-        raw = client._post(client._envelope(body))
-        try:
-            pretty = xml.dom.minidom.parseString(raw).toprettyxml(indent="  ")
-        except Exception:
-            pretty = raw
-        print(pretty)
-        sys.exit(0)
+    active = (frozenset(tuple(f.split(".", 1)) for f in args.fields if "." in f)
+              if args.fields else DEFAULT_FIELDS)
 
     print(f"Loading: {proj['name']} …\n")
     try:
@@ -1622,29 +767,48 @@ def _cli():
         print(f"ERROR loading project: {e}", file=sys.stderr)
         sys.exit(1)
 
-    if args.debug:
-        print("\n── DEBUG: raw section data ──")
-        for sec in sections:
-            print(f"\n  [{sec['name']}]  ({len(sec['items'])} item(s))")
-            if sec.get("error"):
-                print(f"    ERROR: {sec['error']}")
-            for item in sec["items"][:5]:
-                print(f"    --- item ---")
-                print(f"    name : {item['name']}")
-                print(f"    type : {item.get('type', '(empty)')}")
-                print(f"    uri  : {item['uri']}")
-                print(f"    attrs returned ({len(item['attrs'])}):")
-                for k, v in sorted(item["attrs"].items()):
-                    print(f"      {k} = {v!r}")
-        print("\n── END DEBUG ──\n")
-
     print(format_project(proj["name"], sections, active))
 
+# ---------------------------------------------------------------------------
+# Entry point
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         _cli()
     else:
-        app = App()
-        app.mainloop()
+        # Resolve the ui/ folder — works from source and from PyInstaller bundle
+        if getattr(sys, "frozen", False):
+            ui_dir = Path(sys.executable).parent / "ui"
+        else:
+            ui_dir = _HERE / "ui"
+
+        api = Api()
+
+        # Pre-connect if we have saved credentials
+        cfg = load_config()
+        if cfg.get("server") and cfg.get("username"):
+            pw = load_password(cfg["username"])
+            try:
+                api._client = InterplayClient(cfg["server"], cfg["username"], pw)
+            except Exception:
+                pass
+
+        window = webview.create_window(
+            title="Avid MediaCentral Metadata Exporter",
+            url=str(ui_dir / "index.html"),
+            js_api=api,
+            width=1100,
+            height=700,
+            min_size=(800, 520),
+        )
+        api._set_window(window)
+
+        # Run pending installer (if any) on exit
+        atexit.register(lambda: (
+            api._updater.launch_installer(api._updater.pending_path)
+            if api._updater.pending_path and api._updater.pending_path.exists()
+            else None
+        ))
+
+        webview.start()
