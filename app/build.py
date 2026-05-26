@@ -299,6 +299,9 @@ print()
 _auto_icon(icon)
 if icon.exists():
     args += ["--icon", str(icon)]
+    if IS_WIN:
+        # Copy icon.ico next to the exe so the app can call iconbitmap() at runtime
+        args += ["--add-data", f"{icon}:."]
 
 args.append(str(HERE / "interplay_explorer.py"))
 

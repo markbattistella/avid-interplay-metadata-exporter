@@ -99,6 +99,9 @@ IS_MAC = sys.platform == "darwin"
 GITHUB_OWNER = "markbattistella"
 GITHUB_REPO  = "avid-interplay-metadata-exporter"
 
+_HERE   = Path(__file__).parent
+_ASSETS = _HERE / "assets"
+
 _TYPE_LABEL = {
     "masterclip": "MC ",
     "sequence":   "SEQ",
@@ -458,6 +461,15 @@ _BTN_SECONDARY = {
     "text_color":  ("gray10", "gray90"),
 }
 
+def _nav_section(parent, text: str):
+    """Centered pill-badge section divider used in the left sidebar."""
+    outer = ctk.CTkFrame(parent, fg_color="transparent")
+    outer.pack(fill="x", pady=(12, 4))
+    pill = ctk.CTkFrame(outer, corner_radius=100, fg_color=("gray78", "gray28"))
+    pill.pack(anchor="center")
+    ctk.CTkLabel(pill, text=text, font=ctk.CTkFont(size=10, weight="bold"),
+                 text_color=("gray35", "gray65")).pack(padx=12, pady=3)
+
 # ---------------------------------------------------------------------------
 # UI — Fields dialog
 # ---------------------------------------------------------------------------
@@ -711,51 +723,77 @@ class OnboardingView(ctk.CTkFrame):
 # ---------------------------------------------------------------------------
 
 class NavPanel(ctk.CTkFrame):
-    def __init__(self, parent, on_load_project):
+    def __init__(self, parent, on_load_project, on_settings=None):
         super().__init__(parent, width=280, corner_radius=0)
         self.pack_propagate(False)
         self._on_load       = on_load_project
+        self._on_settings   = on_settings
         self._client: InterplayClient | None = None
         self._cfg:    dict = {}
         self._stack:  list[tuple[str, str]] = []   # (display_name, uri)
         self._items:  list[dict] = []
+        self._filter_job: str | None = None
         self._filter_var = tk.StringVar()
-        self._filter_var.trace_add("write", lambda *_: self._render_list())
+        self._filter_var.trace_add("write", lambda *_: self._debounce_filter())
         self._build()
 
     def _build(self):
-        # Back + breadcrumb row
+        # ── Step 1: Connection ────────────────────────────────────────────────
+        _nav_section(self, "Connection")
+
+        conn_row = ctk.CTkFrame(self, fg_color="transparent")
+        conn_row.pack(fill="x", padx=8, pady=(0, 4))
+
+        self._lbl_connection = ctk.CTkLabel(
+            conn_row, text="Not connected",
+            text_color="gray", font=ctk.CTkFont(size=11), anchor="w")
+        self._lbl_connection.pack(side="left", fill="x", expand=True)
+
+        if self._on_settings:
+            ctk.CTkButton(
+                conn_row, text="⚙", width=28, height=28,
+                **_BTN_SECONDARY,
+                command=self._on_settings).pack(side="right")
+
+        # ── Step 2: Browse ────────────────────────────────────────────────────
+        _nav_section(self, "Browse")
+
         nav_row = ctk.CTkFrame(self, fg_color="transparent")
-        nav_row.pack(fill="x", padx=8, pady=(12, 0))
+        nav_row.pack(fill="x", padx=8, pady=(0, 4))
 
         self._btn_back = ctk.CTkButton(
             nav_row, text="← Back", width=72, height=28,
-            fg_color="transparent", border_width=1,
+            **_BTN_SECONDARY,
             state="disabled", command=self._go_back)
         self._btn_back.pack(side="left")
 
         self._lbl_crumb = ctk.CTkLabel(
             nav_row, text="", anchor="w", text_color="gray",
-            font=ctk.CTkFont(size=11), wraplength=170)
-        self._lbl_crumb.pack(side="left", padx=(8, 0))
+            font=ctk.CTkFont(size=11), wraplength=150)
+        self._lbl_crumb.pack(side="left", padx=(6, 0))
 
-        # Filter
         ctk.CTkEntry(self, textvariable=self._filter_var,
                      placeholder_text="Filter…",
-                     height=32).pack(fill="x", padx=8, pady=8)
+                     height=32).pack(fill="x", padx=8, pady=(4, 6))
 
-        # Scrollable list
         self._scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self._scroll.pack(fill="both", expand=True, padx=4, pady=(0, 4))
 
-        # Hint label (shown while empty / loading)
         self._lbl_hint = ctk.CTkLabel(
             self._scroll, text="",
             text_color="gray", font=ctk.CTkFont(size=12),
             wraplength=240)
         self._lbl_hint.pack(pady=20)
 
-        # Status bar at bottom of panel
+        # ── Step 3: Generate ─────────────────────────────────────────────────
+        _nav_section(self, "Generate")
+
+        self._btn_generate = ctk.CTkButton(
+            self, text="Generate Report",
+            state="disabled",
+            command=self._generate_current)
+        self._btn_generate.pack(fill="x", padx=8, pady=(0, 4))
+
         self._lbl_status = ctk.CTkLabel(
             self, text="", text_color="gray",
             font=ctk.CTkFont(size=11), anchor="w")
@@ -767,6 +805,9 @@ class NavPanel(ctk.CTkFrame):
         self._client = client
         self._cfg    = cfg
         wg           = cfg.get("workgroup", "AvidWorkgroup")
+        server       = cfg.get("server", "")
+        self._lbl_connection.configure(
+            text=f"{server}  ·  {wg}", text_color=("gray30", "gray70"))
         root_uri     = f"interplay://{wg}/"
         self._stack  = [("Root", root_uri)]
         self._load_level(root_uri)
@@ -794,11 +835,11 @@ class NavPanel(ctk.CTkFrame):
         self._render_list()
         n = len(self._items)
         self._set_status(f"{n} item{'s' if n != 1 else ''}")
-        # Update breadcrumb (skip the root sentinel)
         crumb = " › ".join(name for name, _ in self._stack[1:])
         self._lbl_crumb.configure(text=crumb)
-        self._btn_back.configure(
-            state="normal" if len(self._stack) > 1 else "disabled")
+        at_root = len(self._stack) <= 1
+        self._btn_back.configure(state="disabled" if at_root else "normal")
+        self._btn_generate.configure(state="disabled" if at_root else "normal")
 
     def _load_error(self, msg: str):
         self._lbl_hint.configure(text=f"Error: {msg}")
@@ -818,17 +859,25 @@ class NavPanel(ctk.CTkFrame):
 
         self._lbl_hint.pack_forget()
         for item in visible:
-            btn = ctk.CTkButton(
-                self._scroll,
+            row = ctk.CTkFrame(self._scroll, fg_color="transparent")
+            row.pack(fill="x", pady=1)
+            ctk.CTkButton(
+                row,
                 text=item["name"],
                 anchor="w",
                 fg_color="transparent",
                 text_color=("gray10", "gray90"),
                 hover_color=("gray85", "gray25"),
                 height=34,
-                command=lambda i=item: self._navigate(i))
-            btn.pack(fill="x", pady=1)
-            btn.bind("<Double-1>", lambda e, i=item: self._load_as_project(i))
+                command=lambda i=item: self._navigate(i)
+            ).pack(side="left", fill="x", expand=True)
+            ctk.CTkButton(
+                row,
+                text="→",
+                width=34, height=34,
+                **_BTN_SECONDARY,
+                command=lambda i=item: self._load_as_project(i)
+            ).pack(side="right", padx=(2, 0))
 
     def _clear_list(self):
         for w in self._scroll.winfo_children():
@@ -837,6 +886,17 @@ class NavPanel(ctk.CTkFrame):
             self._scroll, text="",
             text_color="gray", font=ctk.CTkFont(size=12),
             wraplength=240)
+
+    def _debounce_filter(self):
+        if self._filter_job:
+            self.after_cancel(self._filter_job)
+        self._filter_job = self.after(150, self._render_list)
+
+    def _generate_current(self):
+        if len(self._stack) < 2:
+            return
+        name, uri = self._stack[-1]
+        self._on_load(name, uri, self._client)
 
     def _navigate(self, item: dict):
         self._stack.append((item["name"], item["uri"]))
@@ -886,13 +946,16 @@ class DetailPanel(ctk.CTkFrame):
             **_BTN_SECONDARY,
             command=self._open_fields)
         self._btn_export = ctk.CTkButton(
-            top, text="Save…", width=80,
+            top, text="↓", width=36, height=36,
+            **_BTN_SECONDARY,
             state="disabled", command=self._export)
         self._btn_email  = ctk.CTkButton(
-            top, text="Email", width=80,
+            top, text="✉", width=36, height=36,
+            **_BTN_SECONDARY,
             state="disabled", command=self._email)
         self._btn_copy   = ctk.CTkButton(
-            top, text="Copy", width=80,
+            top, text="⎘", width=36, height=36,
+            **_BTN_SECONDARY,
             state="disabled", command=self._copy)
 
         for btn in (self._btn_export, self._btn_email,
@@ -1252,6 +1315,17 @@ class App(ctk.CTk):
                     "com.markbattistella.mcexplorer")
             except Exception:
                 pass
+            # Set window/taskbar icon (bundled exe has it embedded but Tk
+            # overrides it with its own default unless we set it explicitly)
+            if getattr(sys, "frozen", False):
+                ico = Path(sys.executable).parent / "icon.ico"
+            else:
+                ico = _ASSETS / "icon.ico"
+            if ico.exists():
+                try:
+                    self.iconbitmap(str(ico))
+                except Exception:
+                    pass
 
     def _setup_mac_menu(self):
         menubar = tk.Menu(self)
@@ -1337,30 +1411,40 @@ class App(ctk.CTk):
         self._current_view = root_frame
 
         # ── Header ────────────────────────────────────────────────────────────
-        header = ctk.CTkFrame(root_frame, height=48, corner_radius=0,
+        header = ctk.CTkFrame(root_frame, height=60, corner_radius=0,
                                fg_color=("gray90", "gray15"))
         header.pack(side="top", fill="x")
         header.pack_propagate(False)
 
-        ctk.CTkLabel(header, text="MediaCentral Explorer",
-                     font=ctk.CTkFont(size=15, weight="bold")).pack(
-            side="left", padx=16)
-        ctk.CTkButton(
-            header, text="⚙", width=40, height=36,
-            fg_color="transparent",
-            font=ctk.CTkFont(size=17),
-            command=self._open_settings).pack(side="right", padx=8, pady=6)
+        title_block = ctk.CTkFrame(header, fg_color="transparent")
+        title_block.pack(side="left", padx=16, fill="y", pady=10)
+        ctk.CTkLabel(title_block, text="Avid MediaCentral",
+                     font=ctk.CTkFont(size=14, weight="bold"),
+                     anchor="w").pack(anchor="w")
+        ctk.CTkLabel(title_block, text="Metadata Exporter",
+                     font=ctk.CTkFont(size=11),
+                     text_color="gray", anchor="w").pack(anchor="w")
 
         # ── Divider under header ───────────────────────────────────────────────
         ctk.CTkFrame(root_frame, height=1,
                      fg_color=("gray80", "gray30")).pack(side="top", fill="x")
+
+        # ── Footer (pack before content so it claims bottom space first) ──────
+        footer = ctk.CTkFrame(root_frame, height=24, corner_radius=0,
+                               fg_color=("gray85", "gray18"))
+        footer.pack(side="bottom", fill="x")
+        footer.pack_propagate(False)
+        ctk.CTkLabel(footer,
+                     text=f"© Mark Battistella {datetime.now().year}",
+                     font=ctk.CTkFont(size=10), text_color="gray").pack(
+            side="left", padx=10)
 
         # ── Content area ──────────────────────────────────────────────────────
         content = ctk.CTkFrame(root_frame, fg_color="transparent")
         content.pack(side="top", fill="both", expand=True)
 
         # Nav panel (fixed width left sidebar)
-        self._nav = NavPanel(content, self._load_project)
+        self._nav = NavPanel(content, self._load_project, self._open_settings)
         self._nav.pack(side="left", fill="y")
 
         # Vertical divider between nav and detail
