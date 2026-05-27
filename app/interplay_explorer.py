@@ -87,9 +87,6 @@ FIELD_DEFS = [
     ("Markers", "Locators",        "Markers",          False, "Markers"),
 ]
 
-_ALWAYS_ON = frozenset(
-    (g, n) for g, n, _, _, cat in FIELD_DEFS if cat == "")
-
 DEFAULT_FIELDS = frozenset(
     (g, n) for g, n, _, default, cat in FIELD_DEFS if default and cat != "")
 
@@ -113,7 +110,6 @@ DEFAULT_PROJECT_LOAD_DEPTH = 4
 MAILTO_MAX_URL_LENGTH = 8000
 
 _HERE   = Path(__file__).parent
-_ASSETS = _HERE / "assets"
 
 _TYPE_LABEL = {
     "masterclip": "MC ",
