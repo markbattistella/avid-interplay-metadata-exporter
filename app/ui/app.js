@@ -104,7 +104,15 @@ const _MOCK_API = {
   async test_connection()                   { return { ok: true, message: 'Connected successfully. (mock)' }; },
   async save_settings()                     { return { ok: true }; },
   async save_fields()                       { return { ok: true }; },
-  async check_updates()                     { return { available: false, current: 'dev' }; },
+  async check_updates() {
+    if (new URLSearchParams(window.location.search).has('update')) {
+      return {
+        available: true, tag: '2099.01.01', current: 'dev',
+        notes: '## What\'s New\n\n- Added Markers support — fetch timecode markers per clip\n- Metadata Fields moved to a standalone toolbar panel\n- Fixed generate button layout jump during metadata generation\n- Copy, email, and save buttons now always visible\n\n## Fixes\n\n- Version stamping now picks up GitHub release tags correctly\n- Build workflow permissions fixed for release asset uploads',
+      };
+    }
+    return { available: false, current: 'dev' };
+  },
   async install_update_now()                { return { ok: false, error: 'Mock mode' }; },
   async queue_update()                      { return { ok: false, error: 'Mock mode' }; },
 };
@@ -206,11 +214,13 @@ const connStatus       = el('conn-status');
 const btnTest          = el('btn-test');
 const btnSaveSettings  = el('btn-save-settings');
 
-const updateBanner     = el('update-banner');
-const updateMsg        = el('update-msg');
+const updateModal      = el('update-modal');
+const uvCurrent        = el('uv-current');
+const uvNew            = el('uv-new');
+const updateNotes      = el('update-notes');
 const btnUpdateNow     = el('btn-update-now');
 const btnUpdateQuit    = el('btn-update-quit');
-const btnUpdateDismiss = el('btn-update-dismiss');
+const btnUpdateLater   = el('btn-update-later');
 
 // ── Icons + copyright ──────────────────────────────────────────────────────
 lucide.createIcons();
@@ -565,7 +575,10 @@ btnSettings.addEventListener('click', async () => {
   openModal();
 });
 btnModalClose.addEventListener('click', closeModal);
-backdrop.addEventListener('click',     closeModal);
+backdrop.addEventListener('click', () => {
+  if (!settingsModal.classList.contains('hidden')) closeModal();
+  if (!updateModal.classList.contains('hidden'))   closeUpdateModal();
+});
 
 async function populateSheet() {
   const cfg = await pywebview.api.get_config();
@@ -728,29 +741,117 @@ document.addEventListener('click', e => {
 async function checkForUpdates() {
   const r = await pywebview.api.check_updates();
   if (!r.available) return;
-  updateMsg.textContent = `v${r.tag} available (you have v${r.current}).`;
-  updateBanner.classList.remove('hidden');
+  openUpdateModal(r);
 }
+
+const _SKIP_KEY = 'mc_update_skip';
+
+function _skipCount(tag) {
+  try {
+    const d = JSON.parse(localStorage.getItem(_SKIP_KEY) || '{}');
+    return d.tag === tag ? (d.count || 0) : 0;
+  } catch { return 0; }
+}
+
+function _bumpSkip(tag) {
+  localStorage.setItem(_SKIP_KEY, JSON.stringify({ tag, count: _skipCount(tag) + 1 }));
+}
+
+function openUpdateModal(r) {
+  uvCurrent.textContent = r.current || '';
+  uvNew.textContent     = r.tag     || '';
+  renderUpdateNotes(r.notes || '');
+  updateModal.dataset.tag = r.tag || '';
+  const forced = _skipCount(r.tag) >= 10;
+  updateModal.classList.toggle('skip-limit', forced);
+  document.body.classList.add('modal-open');
+  backdrop.classList.remove('hidden');
+  updateModal.classList.remove('hidden');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    backdrop.classList.add('visible');
+    updateModal.classList.add('visible');
+  }));
+}
+
+function closeUpdateModal() {
+  backdrop.classList.remove('visible');
+  updateModal.classList.remove('visible');
+  setTimeout(() => {
+    updateModal.classList.add('hidden');
+    if (settingsModal.classList.contains('hidden')) {
+      document.body.classList.remove('modal-open');
+      backdrop.classList.add('hidden');
+    }
+  }, 220);
+}
+
+function renderUpdateNotes(md) {
+  updateNotes.innerHTML = '';
+  if (!md) return;
+  let curList = null;
+  md.split('\n').forEach(line => {
+    const t   = line.trimEnd();
+    const mH2 = t.match(/^##\s+(.*)/);
+    const mH3 = t.match(/^###\s+(.*)/);
+    const mLi = t.match(/^[-*]\s+(.*)/);
+    if (!t.trim()) { curList = null; return; }
+    if (mH2) {
+      curList = null;
+      const h = document.createElement('h4');
+      h.textContent = mH2[1];
+      updateNotes.appendChild(h);
+    } else if (mH3) {
+      curList = null;
+      const h = document.createElement('h5');
+      h.textContent = mH3[1];
+      updateNotes.appendChild(h);
+    } else if (mLi) {
+      if (!curList) { curList = document.createElement('ul'); updateNotes.appendChild(curList); }
+      const li = document.createElement('li');
+      li.innerHTML = inlineMd(mLi[1]);
+      curList.appendChild(li);
+    } else {
+      curList = null;
+      const p = document.createElement('p');
+      p.innerHTML = inlineMd(t);
+      updateNotes.appendChild(p);
+    }
+  });
+}
+
+function inlineMd(text) {
+  return esc(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g,       '<code>$1</code>');
+}
+
+btnUpdateLater.addEventListener('click', () => {
+  _bumpSkip(updateModal.dataset.tag || '');
+  closeUpdateModal();
+});
 
 btnUpdateNow.addEventListener('click', async () => {
   btnUpdateNow.disabled = btnUpdateQuit.disabled = true;
-  updateMsg.textContent = 'Downloading…';
+  btnUpdateNow.textContent = 'Downloading…';
   const r = await pywebview.api.install_update_now();
   if (!r.ok) {
-    updateMsg.textContent = `Download failed: ${r.error}`;
+    btnUpdateNow.textContent = 'Install Now';
     btnUpdateNow.disabled = btnUpdateQuit.disabled = false;
+    flash(`Update failed: ${r.error}`);
+    closeUpdateModal();
   }
 });
 
 btnUpdateQuit.addEventListener('click', async () => {
   btnUpdateNow.disabled = btnUpdateQuit.disabled = true;
-  updateMsg.textContent = 'Downloading…';
   const r = await pywebview.api.queue_update();
-  updateMsg.textContent = r.ok ? 'Will install on quit.' : `Failed: ${r.error}`;
-});
-
-btnUpdateDismiss.addEventListener('click', () => {
-  updateBanner.classList.add('hidden');
+  if (r.ok) {
+    closeUpdateModal();
+  } else {
+    btnUpdateNow.disabled = btnUpdateQuit.disabled = false;
+    flash(`Update failed: ${r.error}`);
+    closeUpdateModal();
+  }
 });
 
 // ── Sidebar resize ────────────────────────────────────────────────────────
@@ -810,9 +911,11 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // Escape → close fields panel, close modal, clear filter, or blur filter
+  // Escape → close modals/panels in order of priority
   if (e.key === 'Escape') {
-    if (!fieldsPanel.classList.contains('hidden')) {
+    if (!updateModal.classList.contains('hidden')) {
+      closeUpdateModal();
+    } else if (!fieldsPanel.classList.contains('hidden')) {
       closeFieldsPanel();
     } else if (!settingsModal.classList.contains('hidden')) {
       closeModal();

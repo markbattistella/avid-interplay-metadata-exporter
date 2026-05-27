@@ -581,7 +581,8 @@ class Updater:
                     sha256 = digest.removeprefix("sha256:") if digest.startswith("sha256:") else ""
                     self._validate_download_url(url)
                     self._available = {"tag": tag, "url": url, "sha256": sha256}
-                    return {"available": True, "tag": tag, "current": __version__}
+                    return {"available": True, "tag": tag, "current": __version__,
+                            "notes": data.get("body", "") or ""}
         except Exception:
             pass
         self._available = None

@@ -136,12 +136,33 @@
     <div id="field-groups"></div>
   </div>
 
-  <!-- ── Update banner ── -->
-  <div id="update-banner" class="hidden">
-    <span id="update-msg"></span>
-    <button id="btn-update-now">Install Now</button>
-    <button id="btn-update-quit">Install on Quit</button>
-    <button id="btn-update-dismiss" class="icon-btn"><i data-lucide="x"></i></button>
+  <!-- ── Update modal ── -->
+  <div id="update-modal" class="hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Update Available</h3>
+      </div>
+      <div class="modal-body">
+        <div id="update-version-badge">
+          <div class="uv-row">
+            <span class="uv-label">Installed</span>
+            <span class="uv-old">v<span id="uv-current"></span></span>
+          </div>
+          <div class="uv-row uv-row-new">
+            <span class="uv-label">Available</span>
+            <span class="uv-new">v<span id="uv-new"></span></span>
+          </div>
+        </div>
+        <div id="update-notes"></div>
+        <div class="modal-actions update-actions">
+          <div class="update-actions-secondary">
+            <button id="btn-update-later">Later</button>
+            <button id="btn-update-quit">Install on Quit</button>
+          </div>
+          <button id="btn-update-now" class="primary-btn">Install Now</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="lucide.min.js"></script>
