@@ -21,6 +21,7 @@ import requests
 import xml.etree.ElementTree as ET
 import html as html_lib
 import json
+import logging
 import re
 import sys
 import os
@@ -32,6 +33,9 @@ import atexit
 import hashlib
 from pathlib import Path
 from datetime import datetime
+
+logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+_log = logging.getLogger(__name__)
 
 try:
     import keyring
@@ -90,12 +94,6 @@ DEFAULT_FIELDS = frozenset(
     (g, n) for g, n, _, default, cat in FIELD_DEFS if default and cat != "")
 
 RETURN_ATTRS = [(g, n) for g, n, _, _, cat in FIELD_DEFS if cat != "Markers"]
-
-_MAIN_LINE = {("System", "Duration"), ("System", "Media Status")}
-_DATE_LINE = {("System", "Created By"), ("System", "Creation Date"),
-              ("System", "Modified By"), ("System", "Modified Date")}
-_EXTRAS    = {(g, n) for g, n, _, _, cat in FIELD_DEFS
-              if cat not in ("", "Core", "Dates")}
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -174,8 +172,8 @@ def load_config() -> dict:
 def save_config(cfg: dict):
     try:
         _config_path().write_text(json.dumps(cfg, indent=2))
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug("save_config failed: %s", e)
 
 # ---------------------------------------------------------------------------
 # Credentials
@@ -185,15 +183,15 @@ def save_password(username: str, password: str):
     if HAS_KEYRING and username and password:
         try:
             keyring.set_password(APP_NAME, username, password)
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug("save_password failed: %s", e)
 
 def load_password(username: str) -> str:
     if HAS_KEYRING and username:
         try:
             return keyring.get_password(APP_NAME, username) or ""
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug("load_password failed: %s", e)
     return ""
 
 # ---------------------------------------------------------------------------
@@ -598,8 +596,8 @@ class Updater:
                     self._available = {"tag": tag, "url": url, "sha256": sha256}
                     return {"available": True, "tag": tag, "current": __version__,
                             "notes": data.get("body", "") or ""}
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug("check_for_update failed: %s", e)
         self._available = None
         return {"available": False, "current": __version__}
 
@@ -651,8 +649,8 @@ class Updater:
         if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
             try:
                 tmp.unlink()
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug("temp file cleanup failed: %s", e)
             raise RuntimeError("Downloaded update did not match the release checksum.")
         return tmp
 
@@ -978,8 +976,8 @@ if __name__ == "__main__":
             pw = load_password(cfg["username"])
             try:
                 api._client = InterplayClient(cfg["server"], cfg["username"], pw)
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug("pre-connect failed: %s", e)
 
         window = webview.create_window(
             title="Avid MediaCentral Metadata Exporter",
