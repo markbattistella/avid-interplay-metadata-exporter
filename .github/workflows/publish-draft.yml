@@ -1,0 +1,44 @@
+name: Publish Draft Release
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # midnight AEST (UTC+10)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish today's draft release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const today = new Date()
+              .toISOString()
+              .slice(0, 10)
+              .replace(/-/g, '.');
+
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 20,
+            });
+
+            const draft = releases.find(r => r.draft && r.tag_name === today);
+
+            if (!draft) {
+              core.notice(`No draft release found for ${today} — nothing to publish.`);
+              return;
+            }
+
+            core.notice(`Publishing ${draft.tag_name} (id ${draft.id})…`);
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: draft.id,
+              draft: false,
+            });
+            core.notice(`${draft.tag_name} published — build workflow will start shortly.`);
