@@ -2,7 +2,7 @@ name: Publish Draft Release
 
 on:
   schedule:
-    - cron: '0 14 * * *'  # midnight AEST (UTC+10)
+    - cron: '0 23 * * *'  # 09:00 AEDT (UTC+11) / 10:00 AEST (UTC+10)
   workflow_dispatch:
 
 permissions:
@@ -17,8 +17,7 @@ jobs:
         with:
           script: |
             const today = new Date()
-              .toISOString()
-              .slice(0, 10)
+              .toLocaleDateString('en-CA', { timeZone: 'Australia/Sydney' })
               .replace(/-/g, '.');
 
             const { data: releases } = await github.rest.repos.listReleases({
