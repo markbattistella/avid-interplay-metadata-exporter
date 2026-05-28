@@ -153,7 +153,20 @@ Binaries are built automatically by the `Release` GitHub Actions workflow.
 
 ### Releasing
 
-Preferred path:
+Preferred path with handwritten release notes:
+
+1. Open **Releases** -> **Draft a new release** in GitHub.
+2. Enter a tag such as `2026.05.28`. For a second release on the same day, use
+   `2026.05.28.1`.
+3. Target `main`, write the release notes, and save the release as a draft.
+4. The `Release` workflow runs daily at 09:00 AEST / 10:00 AEDT Melbourne time.
+   It publishes draft releases whose date part matches the Melbourne date,
+   builds the Windows installer and macOS DMG, and uploads both files.
+
+To publish a draft immediately, open **Actions** -> **Release** -> **Run
+workflow**, enter the same version tag, and leave `ref` as `main`.
+
+Tag-only path with generated release notes:
 
 ```bash
 git switch main
@@ -162,19 +175,8 @@ git tag 2026.05.28
 git push origin 2026.05.28
 ```
 
-Pushing a `YYYY.MM.DD` tag starts the release workflow. For a second release on
-the same day, use a numeric suffix such as `2026.05.28.1`. The workflow builds
-the Windows installer and macOS DMG, creates the GitHub Release with generated
-release notes, and uploads both files.
-
-GitHub UI path:
-
-1. Open **Actions** -> **Release** -> **Run workflow**.
-2. Enter the version tag, for example `2026.05.28` or `2026.05.28.1`.
-3. Leave `ref` as `main` unless releasing a specific branch, tag, or SHA.
-
-Do not create a draft release for the normal flow; the workflow creates the
-release after both platform builds succeed.
+Pushing a `YYYY.MM.DD` or `YYYY.MM.DD.N` tag starts the workflow, creates a
+GitHub Release with generated release notes, and uploads both files.
 
 ### Build on macOS
 

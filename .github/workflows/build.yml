@@ -4,14 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release tag/version, e.g. 2026.05.28"
+        description: "Release tag/version. If a draft with this tag exists, its notes are kept."
         required: true
         type: string
       ref:
-        description: "Branch, tag, or SHA to release"
+        description: "Branch, tag, or SHA to release when no matching draft exists."
         required: false
         default: "main"
         type: string
+  schedule:
+    - cron: "0 23 * * *" # 09:00 AEST / 10:00 AEDT in Melbourne
   push:
     tags:
       - "20*"
@@ -20,57 +22,152 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.event.inputs.version || github.ref_name }}
+  group: release-${{ github.event.inputs.version || github.ref_name || github.run_id }}
   cancel-in-progress: false
 
 jobs:
-  validate:
+  prepare:
     runs-on: ubuntu-latest
     outputs:
+      should_release: ${{ steps.release.outputs.should_release }}
       version: ${{ steps.release.outputs.version }}
       ref: ${{ steps.release.outputs.ref }}
+      release_id: ${{ steps.release.outputs.release_id }}
+      from_draft: ${{ steps.release.outputs.from_draft }}
     steps:
-      - name: Validate release inputs
+      - name: Resolve release
         id: release
+        uses: actions/github-script@v9
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           INPUT_REF: ${{ github.event.inputs.ref }}
-        shell: bash
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
-            version="$GITHUB_REF_NAME"
-            ref="$GITHUB_REF_NAME"
-          else
-            version="$INPUT_VERSION"
-            ref="${INPUT_REF:-main}"
-          fi
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const defaultBranch = context.payload.repository?.default_branch || "main";
 
-          if [[ ! "$version" =~ ^20[0-9]{2}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]; then
-            echo "::error::Release version must use YYYY.MM.DD or YYYY.MM.DD.N format, for example 2026.05.28 or 2026.05.28.1."
-            exit 1
-          fi
+            function setOutputs({ shouldRelease, version = "", ref = "", releaseId = "", fromDraft = false }) {
+              core.setOutput("should_release", shouldRelease ? "true" : "false");
+              core.setOutput("version", version);
+              core.setOutput("ref", ref);
+              core.setOutput("release_id", releaseId ? String(releaseId) : "");
+              core.setOutput("from_draft", fromDraft ? "true" : "false");
+            }
 
-          python - "$version" <<'PY'
-          import datetime
-          import sys
+            function validateVersion(version) {
+              if (!/^20\d{2}\.\d{2}\.\d{2}(?:\.\d+)?$/.test(version)) {
+                throw new Error(`Release version must use YYYY.MM.DD or YYYY.MM.DD.N format, for example 2026.05.28 or 2026.05.28.1. Got: ${version}`);
+              }
 
-          parts = sys.argv[1].split(".")
-          try:
-              datetime.datetime.strptime(".".join(parts[:3]), "%Y.%m.%d")
-          except ValueError:
-              print(f"::error::Release version is not a valid calendar date: {sys.argv[1]}")
-              raise SystemExit(1)
+              const parts = version.split(".").map(Number);
+              const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+              if (
+                date.getUTCFullYear() !== parts[0] ||
+                date.getUTCMonth() !== parts[1] - 1 ||
+                date.getUTCDate() !== parts[2]
+              ) {
+                throw new Error(`Release version is not a valid calendar date: ${version}`);
+              }
 
-          if len(parts) == 4 and int(parts[3]) == 0:
-              print("::error::Same-day release suffix must be greater than zero.")
-              raise SystemExit(1)
-          PY
+              if (parts.length === 4 && parts[3] === 0) {
+                throw new Error("Same-day release suffix must be greater than zero.");
+              }
+            }
 
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+            function baseDate(version) {
+              return version.split(".").slice(0, 3).join(".");
+            }
+
+            async function releases() {
+              return github.paginate(github.rest.repos.listReleases, {
+                owner,
+                repo,
+                per_page: 100,
+              });
+            }
+
+            if (context.eventName === "schedule") {
+              const dateParts = new Intl.DateTimeFormat("en-AU", {
+                timeZone: "Australia/Melbourne",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              }).formatToParts(new Date());
+              const datePart = (type) => dateParts.find((part) => part.type === type).value;
+              const today = `${datePart("year")}.${datePart("month")}.${datePart("day")}`;
+
+              const drafts = (await releases())
+                .filter((release) => release.draft)
+                .filter((release) => {
+                  try {
+                    validateVersion(release.tag_name);
+                    return baseDate(release.tag_name) === today;
+                  } catch {
+                    return false;
+                  }
+                })
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+              if (drafts.length === 0) {
+                core.notice(`No draft release found for ${today}; nothing to publish.`);
+                setOutputs({ shouldRelease: false });
+                return;
+              }
+
+              if (drafts.length > 1) {
+                core.warning(`Multiple draft releases match ${today}; using newest: ${drafts[0].tag_name}`);
+              }
+
+              const draft = drafts[0];
+              setOutputs({
+                shouldRelease: true,
+                version: draft.tag_name,
+                ref: draft.target_commitish || defaultBranch,
+                releaseId: draft.id,
+                fromDraft: true,
+              });
+              return;
+            }
+
+            const version = context.eventName === "push"
+              ? context.ref.replace("refs/tags/", "")
+              : process.env.INPUT_VERSION;
+
+            validateVersion(version);
+
+            if (context.eventName === "push") {
+              setOutputs({
+                shouldRelease: true,
+                version,
+                ref: version,
+                fromDraft: false,
+              });
+              return;
+            }
+
+            const draft = (await releases()).find((release) => release.draft && release.tag_name === version);
+            if (draft) {
+              setOutputs({
+                shouldRelease: true,
+                version,
+                ref: draft.target_commitish || defaultBranch,
+                releaseId: draft.id,
+                fromDraft: true,
+              });
+              return;
+            }
+
+            setOutputs({
+              shouldRelease: true,
+              version,
+              ref: process.env.INPUT_REF || defaultBranch,
+              fromDraft: false,
+            });
 
   build:
-    needs: validate
+    needs: prepare
+    if: needs.prepare.outputs.should_release == 'true'
     strategy:
       matrix:
         include:
@@ -86,7 +183,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ needs.validate.outputs.ref }}
+          ref: ${{ needs.prepare.outputs.ref }}
 
       - uses: actions/setup-python@v6
         with:
@@ -105,19 +202,20 @@ jobs:
       - name: Build
         working-directory: app
         env:
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: python build.py
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: MCExplorer-${{ matrix.label }}-${{ needs.validate.outputs.version }}
+          name: MCExplorer-${{ matrix.label }}-${{ needs.prepare.outputs.version }}
           path: app/dist/${{ matrix.artifact }}
           if-no-files-found: error
           retention-days: 14
 
   publish:
-    needs: [validate, build]
+    needs: [prepare, build]
+    if: needs.prepare.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download build artifacts
@@ -125,12 +223,39 @@ jobs:
         with:
           path: release-assets
 
-      - name: Create GitHub Release
+      - name: Upload assets to draft release
+        if: needs.prepare.outputs.from_draft == 'true'
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ needs.validate.outputs.version }}
-          target_commitish: ${{ needs.validate.outputs.ref }}
-          name: ${{ needs.validate.outputs.version }}
+          tag_name: ${{ needs.prepare.outputs.version }}
+          draft: true
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: |
+            release-assets/**/MCExplorer-Setup.exe
+            release-assets/**/MCExplorer.dmg
+
+      - name: Publish draft release
+        if: needs.prepare.outputs.from_draft == 'true'
+        uses: actions/github-script@v9
+        env:
+          RELEASE_ID: ${{ needs.prepare.outputs.release_id }}
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: Number(process.env.RELEASE_ID),
+              draft: false,
+            });
+
+      - name: Create GitHub Release
+        if: needs.prepare.outputs.from_draft != 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.prepare.outputs.version }}
+          target_commitish: ${{ needs.prepare.outputs.ref }}
+          name: ${{ needs.prepare.outputs.version }}
           generate_release_notes: true
           make_latest: true
           fail_on_unmatched_files: true
