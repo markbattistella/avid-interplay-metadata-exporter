@@ -14,8 +14,7 @@ on:
         type: string
   push:
     tags:
-      - "20??.??.??"
-      - "20??.??.??.*"
+      - "20*"
 
 permissions:
   contents: write
