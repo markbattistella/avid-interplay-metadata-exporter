@@ -42,17 +42,18 @@ BUILD  = HERE / "build"
 def _parse_version(v: str):
     v = v.lstrip("v").strip()
     parts = v.split(".")
-    if len(parts) == 3 and all(p.isdigit() for p in parts):
-        return v, int(parts[0]), int(parts[1]), int(parts[2])
-    return None, None, None, None
+    if len(parts) in (3, 4) and all(p.isdigit() for p in parts):
+        build = int(parts[3]) if len(parts) == 4 else 0
+        return v, int(parts[0]), int(parts[1]), int(parts[2]), build
+    return None, None, None, None, None
 
 _env_tag = os.environ.get("RELEASE_VERSION", "")
-_tag_ver, _tag_y, _tag_m, _tag_d = _parse_version(_env_tag)
+_tag_ver, _tag_y, _tag_m, _tag_d, _tag_build = _parse_version(_env_tag)
 
 if _tag_ver:
     VERSION   = _tag_ver
     YEAR      = _tag_y
-    VER_TUPLE = (_tag_y, _tag_m, _tag_d, 0)
+    VER_TUPLE = (_tag_y, _tag_m, _tag_d, _tag_build)
 else:
     VERSION   = datetime.now().strftime("%Y.%m.%d")
     YEAR      = datetime.now().year

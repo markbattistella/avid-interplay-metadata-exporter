@@ -600,11 +600,20 @@ class Updater:
     @staticmethod
     def _newer_than_current(tag: str) -> bool:
         try:
-            remote = tuple(int(x) for x in tag.split(".")[:3])
-            local  = tuple(int(x) for x in __version__.split(".")[:3])
+            remote = Updater._version_tuple(tag)
+            local  = Updater._version_tuple(__version__)
             return remote > local
         except Exception:
             return False
+
+    @staticmethod
+    def _version_tuple(version: str) -> tuple[int, int, int, int]:
+        parts = [int(x) for x in version.lstrip("v").split(".")[:4]]
+        if len(parts) not in (3, 4):
+            raise ValueError(f"Unsupported version: {version}")
+        while len(parts) < 4:
+            parts.append(0)
+        return tuple(parts)
 
     @staticmethod
     def _asset(assets: list) -> dict | None:

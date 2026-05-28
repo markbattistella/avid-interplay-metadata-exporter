@@ -149,7 +149,32 @@ Server addresses are normalised before connecting:
 
 ## Building a standalone executable
 
-Binaries are built automatically via GitHub Actions on every release.
+Binaries are built automatically by the `Release` GitHub Actions workflow.
+
+### Releasing
+
+Preferred path:
+
+```bash
+git switch main
+git pull
+git tag 2026.05.28
+git push origin 2026.05.28
+```
+
+Pushing a `YYYY.MM.DD` tag starts the release workflow. For a second release on
+the same day, use a numeric suffix such as `2026.05.28.1`. The workflow builds
+the Windows installer and macOS DMG, creates the GitHub Release with generated
+release notes, and uploads both files.
+
+GitHub UI path:
+
+1. Open **Actions** -> **Release** -> **Run workflow**.
+2. Enter the version tag, for example `2026.05.28` or `2026.05.28.1`.
+3. Leave `ref` as `main` unless releasing a specific branch, tag, or SHA.
+
+Do not create a draft release for the normal flow; the workflow creates the
+release after both platform builds succeed.
 
 ### Build on macOS
 
