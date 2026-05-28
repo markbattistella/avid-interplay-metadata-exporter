@@ -1,68 +1,83 @@
 # MediaCentral Explorer
 
-A cross-platform desktop app (and CLI tool) for browsing an Avid MediaCentral workgroup, loading project contents, and exporting formatted asset metadata — ready to paste into an email or save as a text file.
+MediaCentral Explorer is a desktop app and command-line tool for browsing an
+Avid MediaCentral workgroup and exporting readable asset metadata.
 
----
+It is designed for people who need to quickly inspect projects, bins,
+sequences, master clips, and related metadata without manually opening and
+copying details from MediaCentral.
 
-## Features
+## What It Does
 
-- Connect to any Avid MediaCentral Web Services endpoint
-- Browse and filter projects at a given path
-- Load a project and see all bins, sequences, and master clips with metadata
-- Asset type labels: `MC` (master clip), `SEQ` (sequence), `SUB` (sub-clip), etc.
-- Configurable output fields (duration, status, created/modified dates, and more)
-- Copy to clipboard, save as `.txt`, or open directly in your email client
-- Credentials saved to Windows Credential Manager / macOS Keychain
-- Connection settings persisted across sessions
+- Connects to an Avid MediaCentral Web Services endpoint
+- Browses projects from an Interplay path
+- Loads project contents, including bins, sequences, master clips, subclips, and folders
+- Exports formatted metadata that can be pasted into an email or saved as text
+- Lets you choose which metadata fields are included
+- Copies results to the clipboard, saves them to a `.txt` file, or opens them in your email client
+- Saves connection settings between sessions
+- Stores credentials in Windows Credential Manager or macOS Keychain when available
 
----
+## When To Use It
 
-## Requirements
+Use MediaCentral Explorer when you need to:
 
-### macOS
+- Send a clean summary of project media to another person
+- Check what clips, bins, or sequences exist inside a project
+- Export metadata for production notes, handovers, troubleshooting, or audit trails
+- Automate MediaCentral metadata lookups from scripts
+- Quickly test whether a MediaCentral Web Services endpoint is reachable
 
-1. Install Python 3.13 — [python.org](https://www.python.org/downloads/) or `brew install python@3.13`
-2. Install dependencies:
+## Download The App
 
-   ```bash
-   python3.13 -m pip install -r app/requirements.txt
+The latest packaged app is available from the [GitHub Releases page](https://github.com/markbattistella/avid-interplay-metadata-exporter/releases/latest).
+
+Download the installer for your platform:
+
+- macOS: `MCExplorer.dmg`
+- Windows: `MCExplorer-Setup.exe`
+
+## Using The Desktop App
+
+1. Open MediaCentral Explorer.
+2. Enter your MediaCentral server address.
+3. Enter your username and password.
+4. Enter the Interplay path you want to browse, for example:
+
+   ```text
+   interplay://AvidWorkgroup/Projects/2026
    ```
 
-### Windows
+5. Load the project list.
+6. Select a project to load its bins, sequences, clips, and metadata.
+7. Choose the fields you want included in the output.
+8. Copy, save, or email the formatted result.
 
-1. Install Python 3.13 from [python.org](https://www.python.org/downloads/)
-   - On the installer's first screen, check **"Add python.exe to PATH"** before clicking Install
-2. Open **Command Prompt** or **PowerShell** and install dependencies:
+Server addresses are normalised automatically:
 
-   ```bat
-   pip install -r app\requirements.txt
-   ```
+- `192.168.0.1` becomes `http://192.168.0.1:80`
+- `https://192.168.0.1` becomes `https://192.168.0.1:443`
+- `192.168.0.1:12345` becomes `http://192.168.0.1:12345`
+- `https://192.168.0.1:12345` stays `https://192.168.0.1:12345`
 
-3. Verify Python is available:
+## Using The CLI
 
-   ```bat
-   python --version
-   ```
+You can also run the tool from the command line, which is useful for scripting
+and automation.
 
-   If `python` is not recognised, restart your terminal after installing. If it still fails, use the full path: `C:\Users\<you>\AppData\Local\Programs\Python\Python313\python.exe`
-
----
-
-## Running without building
-
-### GUI
+Install Python dependencies first:
 
 ```bash
-python3.13 app/interplay_explorer.py
+python3.13 -m pip install -r app/requirements.txt
 ```
 
-Opens the full desktop app. No build step required.
+On Windows, use:
 
-### CLI
+```bat
+pip install -r app\requirements.txt
+```
 
-Pass `--server` and the app runs headless — useful for testing connectivity or scripting.
-
-**List all projects at a path:**
+### List Projects
 
 ```bash
 python3.13 app/interplay_explorer.py \
@@ -72,7 +87,7 @@ python3.13 app/interplay_explorer.py \
   --path "interplay://AvidWorkgroup/Projects/2026"
 ```
 
-Output:
+Example output:
 
 ```text
 Listing: interplay://AvidWorkgroup/Projects/2026
@@ -83,7 +98,7 @@ Listing: interplay://AvidWorkgroup/Projects/2026
 3 project(s) found.
 ```
 
-**Load a specific project (substring match):**
+### Export A Project
 
 ```bash
 python3.13 app/interplay_explorer.py \
@@ -94,27 +109,26 @@ python3.13 app/interplay_explorer.py \
   --project "BRAVO"
 ```
 
-Output:
+Example output:
 
 ```text
 PROJECT: 2026002 BRAVO
 Date:    25 May 2026  04:13 PM
-────────────────────────────────────────────────────────────────────────
 
 RAW AUDIO RECORDINGS 22-01-2026
-────────────────────────────────
+--------------------------------
   MC   Interview A                00:07:39:18   Online
     Created: jsmith 22/01/2026   |   Modified: jsmith 25/05/2026
   MC   Interview B                00:03:12:04   Online
     Created: jsmith 22/01/2026   |   Modified: jsmith 25/05/2026
 
 SEQUENCES 22-01-2026
-────────────────────
+--------------------
   SEQ  Assembly Edit              00:12:45:00   Online
     Created: jsmith 22/01/2026   |   Modified: jeditor 24/05/2026
 ```
 
-**Windows (cmd or PowerShell):**
+### Windows CLI Example
 
 ```bat
 python app\interplay_explorer.py ^
@@ -125,92 +139,35 @@ python app\interplay_explorer.py ^
   --project "BRAVO"
 ```
 
----
-
-## CLI reference
+## CLI Reference
 
 | Flag | Required | Description |
 | --- | --- | --- |
-| `--server` | Yes | MediaCentral server address (IP or hostname) |
-| `--user` | Yes | Username |
-| `--password` | Yes | Password |
-| `--path` | Yes | Interplay URI to search, e.g. `interplay://WorkgroupName/Projects/2026` |
-| `--project` | No | Project name to load (substring match). Omit to list only. |
-| `--fields` | No | Override active output fields as quoted `Group.Name` pairs, e.g. `"System.Duration" "System.Media Status"` |
+| `--server` | Yes | MediaCentral server address, IP address, or hostname |
+| `--user` | Yes | MediaCentral username |
+| `--password` | Yes | MediaCentral password |
+| `--path` | Yes | Interplay URI to browse, such as `interplay://WorkgroupName/Projects/2026` |
+| `--project` | No | Project name to load. Uses substring matching. Omit to list projects only. |
+| `--fields` | No | Metadata fields to include, provided as quoted `Group.Name` pairs |
 
-Server addresses are normalised before connecting:
-
-- `192.168.0.1` → `http://192.168.0.1:80`
-- `https://192.168.0.1` → `https://192.168.0.1:443`
-- `192.168.0.1:12345` → `http://192.168.0.1:12345`
-- `https://192.168.0.1:12345` → `https://192.168.0.1:12345`
-
----
-
-## Building a standalone executable
-
-Binaries are built automatically by the `Release` GitHub Actions workflow.
-
-### Releasing
-
-Preferred path with handwritten release notes:
-
-1. Open **Releases** -> **Draft a new release** in GitHub.
-2. Enter a tag such as `2026.05.28`. For a second release on the same day, use
-   `2026.05.28.1`.
-3. Target `main`, write the release notes, and save the release as a draft.
-4. The `Release` workflow runs daily at 09:00 AEST / 10:00 AEDT Melbourne time.
-   It publishes draft releases whose date part matches the Melbourne date,
-   builds the Windows installer and macOS DMG, and uploads both files.
-
-To publish a draft immediately, open **Actions** -> **Release** -> **Run
-workflow**, enter the same version tag, and leave `ref` as `main`.
-
-Tag-only path with generated release notes:
+Example with selected fields:
 
 ```bash
-git switch main
-git pull
-git tag 2026.05.28
-git push origin 2026.05.28
+python3.13 app/interplay_explorer.py \
+  --server 192.168.1.10 \
+  --user jsmith \
+  --password secret \
+  --path "interplay://AvidWorkgroup/Projects/2026" \
+  --project "BRAVO" \
+  --fields "System.Duration" "System.Media Status" "System.Creation Date"
 ```
 
-Pushing a `YYYY.MM.DD` or `YYYY.MM.DD.N` tag starts the workflow, creates a
-GitHub Release with generated release notes, and uploads both files.
+## Output Fields
 
-### Build on macOS
+The default output includes duration, media status, and created/modified dates.
+Additional fields can be enabled in the app or passed with `--fields` in the CLI.
 
-```bash
-sh app/build_mac.sh
-```
-
-Outputs:
-
-- `app/dist/MCExplorer.app` — the app bundle
-- `app/dist/MCExplorer.dmg` — distribute this
-
-Requires Python 3.13 and the dependencies in `app/requirements.txt`.
-
-### Build on Windows
-
-Requires [Inno Setup](https://jrsoftware.org/isinfo.php) (or `choco install innosetup`).
-
-```bat
-app\build_windows.bat
-```
-
-Outputs:
-
-- `app\dist\MCExplorer\` — the app folder
-- `app\dist\MCExplorer-Setup.exe` — distribute this; installs to `Program Files`, creates Start Menu entry
-
----
-
-## Output fields
-
-The default output includes duration, media status, and created/modified dates. Additional fields are available through the CLI `--fields` option or saved defaults in the app configuration.
-
-Available field groups:
+Available field groups include:
 
 | Group | Fields |
 | --- | --- |
@@ -219,3 +176,4 @@ Available field groups:
 | Timecode | Start Timecode, End Timecode |
 | Technical | Tracks, Format, Tape / Reel, Original Project |
 | Production | Comments, Scene, Take, Camera, Camera Roll, Shoot Date |
+| Markers | Locators |
